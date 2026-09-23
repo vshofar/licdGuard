@@ -12,10 +12,10 @@ if not groq_key:
 else:
     try:
         client = Groq(api_key=groq_key)
-        modelos = client.models.list()
+        models = client.models.list()
 
         print("✅ Conexão bem-sucedida! Modelos disponíveis na sua chave Groq:\n")
-        for model in modelos.data:
+        for model in models.data:
             print(f" • {model.id}")
 
     except Exception as e:

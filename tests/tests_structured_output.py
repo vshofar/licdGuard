@@ -13,15 +13,15 @@ groq_key = os.getenv("GROQ_API_KEY")
 gemini_key = os.getenv("GEMINI_API_KEY")
 
 # 1. Definição do Schema Pydantic para Saída Estruturada
-class DiagnosticoFraude(BaseModel):
-    nivel_de_risco: str = Field(description="Nível de risco: BAIXO, MEDIO, ALTO ou CRITICO")
-    tipologia_fraude: str = Field(description="Ex: Cartel, Sociedade Oculta, Rodízio ou Regular")
-    cnpjs_suspeitos: list[str] = Field(description="Lista de CNPJs identificados no padrão")
-    resumo_evidencias: str = Field(description="Breve explicação técnica da evidência encontrada")
+class FraudDiagnosis(BaseModel):
+    risk_level: str = Field(description="Nível de risco: BAIXO, MEDIO, ALTO ou CRITICO")
+    fraud_typology: str = Field(description="Ex: Cartel, Sociedade Oculta, Rodízio ou Regular")
+    suspicious_cnpjs: list[str] = Field(description="Lista de CNPJs identificados no padrão")
+    evidence_summary: str = Field(description="Breve explicação técnica da evidência encontrada")
 
 
 # 2. Teste da Groq com Saída JSON Estruturada
-def testar_groq_estruturado():
+def test_groq_structured():
     print("🚀 Testando Groq com Saída Estruturada (Pydantic)...")
     client = Groq(api_key=groq_key)
 
@@ -34,7 +34,7 @@ def testar_groq_estruturado():
     )
 
     try:
-        inicio = time.time()
+        start = time.time()
         # Forçamos a resposta em formato JSON na Groq
         response = client.chat.completions.create(
             model="openai/gpt-oss-120b",
@@ -45,30 +45,30 @@ def testar_groq_estruturado():
             response_format={
                 "type": "json_schema",
                 "json_schema": {
-                    "name": "diagnostico_fraude",
-                    "schema": DiagnosticoFraude.model_json_schema()
+                    "name": "fraud_diagnosis",
+                    "schema": FraudDiagnosis.model_json_schema()
                 }
             },
             temperature=0.1
         )
-        tempo = (time.time() - inicio) * 1000
+        elapsed_time = (time.time() - start) * 1000
 
         # Parse e Validação com Pydantic
         raw_json = response.choices[0].message.content
-        objeto_validado = DiagnosticoFraude.model_validate_json(raw_json)
+        validated_object = FraudDiagnosis.model_validate_json(raw_json)
 
-        print(f"⚡ Sucesso Groq em {tempo:.2f} ms!")
-        print(f" - Risco Detectado: {objeto_validado.nivel_de_risco}")
-        print(f" - Tipologia: {objeto_validado.tipologia_fraude}")
-        print(f" - CNPJs Suspeitos: {objeto_validado.cnpjs_suspeitos}")
-        print(f" - Evidência: {objeto_validado.resumo_evidencias}\n")
+        print(f"⚡ Sucesso Groq em {elapsed_time:.2f} ms!")
+        print(f" - Risco Detectado: {validated_object.risk_level}")
+        print(f" - Tipologia: {validated_object.fraud_typology}")
+        print(f" - CNPJs Suspeitos: {validated_object.suspicious_cnpjs}")
+        print(f" - Evidência: {validated_object.evidence_summary}\n")
 
     except Exception as e:
         print(f"❌ Erro no teste estruturado da Groq: {e}\n")
 
 
 # 3. Teste do Gemini com Structured Output Nativo
-def testar_gemini_estruturado():
+def test_gemini_structured():
     print("♊ Testando Gemini com Structured Output Nativo (Pydantic)...")
     client = genai.Client(api_key=gemini_key)
 
@@ -83,26 +83,26 @@ def testar_gemini_estruturado():
 
     for model in models:
         try:
-            inicio = time.time()
+            start = time.time()
             # Passamos o Schema Pydantic diretamente na configuração da requisição
             response = client.models.generate_content(
                 model=model,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=DiagnosticoFraude,
+                    response_schema=FraudDiagnosis,
                     temperature=0.1
                 )
             )
-            tempo = (time.time() - inicio) * 1000
+            elapsed_time = (time.time() - start) * 1000
 
             # Validação do resultado retornado
-            objeto_validado = DiagnosticoFraude.model_validate_json(response.text)
+            validated_object = FraudDiagnosis.model_validate_json(response.text)
 
-            print(f"⚡ Sucesso Gemini ({model}) em {tempo:.2f} ms!")
-            print(f" - Risco Detectado: {objeto_validado.nivel_de_risco}")
-            print(f" - Tipologia: {objeto_validado.tipologia_fraude}")
-            print(f" - Resumo: {objeto_validado.resumo_evidencias}\n")
+            print(f"⚡ Sucesso Gemini ({model}) em {elapsed_time:.2f} ms!")
+            print(f" - Risco Detectado: {validated_object.risk_level}")
+            print(f" - Tipologia: {validated_object.fraud_typology}")
+            print(f" - Resumo: {validated_object.evidence_summary}\n")
             return
 
         except Exception as e:
@@ -110,5 +110,5 @@ def testar_gemini_estruturado():
 
 
 if __name__ == "__main__":
-    testar_groq_estruturado()
-    testar_gemini_estruturado()
+    test_groq_structured()
+    test_gemini_structured()
