@@ -1,22 +1,15 @@
-import os
 import time
-
-from dotenv import load_dotenv
+from config import GROQ_API_KEY, GEMINI_API_KEY
 from google import genai
 from groq import Groq
 
-load_dotenv()
-
-groq_key = os.getenv("GROQ_API_KEY")
-gemini_key = os.getenv("GEMINI_API_KEY")
-
 print("🔍 Checando Chaves de API:")
-print(f" - GROQ_API_KEY: {'✅ Carregada' if groq_key else '❌ Não encontrada'}")
-print(f" - GEMINI_API_KEY: {'✅ Carregada' if gemini_key else '❌ Não encontrada'}\n")
+print(f" - GROQ_API_KEY: {'✅ Carregada' if GROQ_API_KEY else '❌ Não encontrada'}")
+print(f" - GEMINI_API_KEY: {'✅ Carregada' if GEMINI_API_KEY else '❌ Não encontrada'}\n")
 
 def test_groq():
     print("🚀 Testando Groq (llama-3.3-70b-versatile)...")
-    client = Groq(api_key=groq_key)
+    client = Groq(api_key=GROQ_API_KEY)
 
     prompt = (
         "Analise a seguinte situação em uma licitação: "
@@ -38,7 +31,7 @@ def test_groq():
 
 def test_gemini():
     print("\n♊ Testando Google Gemini (gemini-2.5-flash)...")
-    client = genai.Client(api_key=gemini_key)
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
     prompt = (
         "Você é um auditor do TCO/CGU. Redija uma nota técnica prévia "
@@ -57,7 +50,7 @@ def test_gemini():
     print("-" * 50)
 
 if __name__ == "__main__":
-    if groq_key:
+    if GROQ_API_KEY:
         test_groq()
-    if gemini_key:
+    if GEMINI_API_KEY:
         test_gemini()

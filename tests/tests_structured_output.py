@@ -1,16 +1,9 @@
-import os
 import time
-from dotenv import load_dotenv
+from config import GROQ_API_KEY, GEMINI_API_KEY
 from groq import Groq
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
-
-# Carregar variáveis do .env ou ~/.bashrc
-load_dotenv()
-
-groq_key = os.getenv("GROQ_API_KEY")
-gemini_key = os.getenv("GEMINI_API_KEY")
 
 # 1. Definição do Schema Pydantic para Saída Estruturada
 class FraudDiagnosis(BaseModel):
@@ -23,7 +16,7 @@ class FraudDiagnosis(BaseModel):
 # 2. Teste da Groq com Saída JSON Estruturada
 def test_groq_structured():
     print("🚀 Testando Groq com Saída Estruturada (Pydantic)...")
-    client = Groq(api_key=groq_key)
+    client = Groq(api_key=GROQ_API_KEY)
 
     prompt = (
         "Analise os dados desta licitação e retorne OBRIGATORIAMENTE um JSON válido com o diagnóstico:\n"
@@ -70,7 +63,7 @@ def test_groq_structured():
 # 3. Teste do Gemini com Structured Output Nativo
 def test_gemini_structured():
     print("♊ Testando Gemini com Structured Output Nativo (Pydantic)...")
-    client = genai.Client(api_key=gemini_key)
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
     prompt = (
         "Analise esta licitação:\n"

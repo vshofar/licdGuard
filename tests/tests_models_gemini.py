@@ -1,10 +1,7 @@
-import os
-from dotenv import load_dotenv
+from config import GEMINI_API_KEY
 from google import genai
 
-load_dotenv()
-
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 print("🔍 Modelos Gemini disponíveis na sua chave:\n")
 for model in client.models.list():

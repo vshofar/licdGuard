@@ -1,17 +1,11 @@
-import os
-from dotenv import load_dotenv
+from config import GROQ_API_KEY
 from groq import Groq
 
-# Carrega as variáveis de ambiente (.env ou ~/.bashrc)
-load_dotenv()
-
-groq_key = os.getenv("GROQ_API_KEY")
-
-if not groq_key:
+if not GROQ_API_KEY:
     print("❌ GROQ_API_KEY não foi encontrada nas variáveis de ambiente.")
 else:
     try:
-        client = Groq(api_key=groq_key)
+        client = Groq(api_key=GROQ_API_KEY)
         models = client.models.list()
 
         print("✅ Conexão bem-sucedida! Modelos disponíveis na sua chave Groq:\n")
