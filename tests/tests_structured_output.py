@@ -79,14 +79,14 @@ def testar_gemini_estruturado():
     )
 
     # Lista de modelos por prioridade
-    modelos = ["models/gemini-3.5-flash-lite"]
+    models = ["models/gemini-3.5-flash-lite"]
 
-    for modelo in modelos:
+    for model in models:
         try:
             inicio = time.time()
             # Passamos o Schema Pydantic diretamente na configuração da requisição
             response = client.models.generate_content(
-                model=modelo,
+                model=model,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
@@ -99,14 +99,14 @@ def testar_gemini_estruturado():
             # Validação do resultado retornado
             objeto_validado = DiagnosticoFraude.model_validate_json(response.text)
 
-            print(f"⚡ Sucesso Gemini ({modelo}) em {tempo:.2f} ms!")
+            print(f"⚡ Sucesso Gemini ({model}) em {tempo:.2f} ms!")
             print(f" - Risco Detectado: {objeto_validado.nivel_de_risco}")
             print(f" - Tipologia: {objeto_validado.tipologia_fraude}")
             print(f" - Resumo: {objeto_validado.resumo_evidencias}\n")
             return
 
         except Exception as e:
-            print(f"⚠️ Tentativa com {modelo} falhou: {e}")
+            print(f"⚠️ Tentativa com {model} falhou: {e}")
 
 
 if __name__ == "__main__":
