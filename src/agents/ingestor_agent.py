@@ -7,9 +7,7 @@ class IngestorAgent:
         self.db = neo4j_client
 
     def save_company_with_partners(self, company: CompanyInput):
-        """
-        Inserts or updates a company and its partner network in Neo4j using MERGE.
-        """
+
         cypher = """
         MERGE (c:Company {cnpj: $cnpj})
         ON CREATE SET c.company_name = $company_name, c.address = $address
@@ -32,9 +30,7 @@ class IngestorAgent:
         self.db.query(cypher, params)
 
     def save_tender_with_proposals(self, tender: TenderInput):
-        """
-        Inserts a tender in Neo4j and connects participating companies through proposals.
-        """
+
         cypher = """
         MERGE (t:Tender {id: $tender_id})
         ON CREATE SET 
