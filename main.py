@@ -11,11 +11,11 @@ async def main():
     redator = Redator()
     
     try:
-        await neo4j_client.connect()
+        neo4j_client.connect()
         print("Licit-Guard iniciado com sucesso")
     finally:
         await ingestor.close()
-        await neo4j_client.close()
+        neo4j_client.close()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,45 +1,35 @@
-from neo4j import AsyncGraphDatabase
-from typing import Optional
+from neo4j import GraphDatabase, Driver
 from config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
-
 
 class Neo4jClient:
     def __init__(self):
         self.uri = NEO4J_URI
         self.user = NEO4J_USER
         self.password = NEO4J_PASSWORD
-        self.driver: Optional[AsyncGraphDatabase.driver] = None
+        self._driver: Driver | None = None
 
-    async def connect(self):
-        """Establish connection to Neo4j database."""
-        self.driver = AsyncGraphDatabase.driver(
-            self.uri,
-            auth=(self.user, self.password)
-        )
-        await self.driver.verify_connectivity()
-        print("Conectado ao Neo4j com sucesso")
+    def connect(self):
+        """Inicializa a conexão com o banco Neo4j."""
+        if not self._driver:
+            self._driver = GraphDatabase.driver(
+                self.uri,
+                auth=(self.user, self.password)
+            )
+            # Testa a conectividade
+            self._driver.verify_connectivity()
+            print("✅ Conexão estabelecida com o Neo4j com sucesso!")
 
-    async def close(self):
-        """Close the Neo4j database connection."""
-        if self.driver:
-            await self.driver.close()
-            print("Conexão Neo4j fechada")
+    def close(self):
+        """Encerra o driver do Neo4j."""
+        if self._driver:
+            self._driver.close()
+            print("🔌 Conexão com o Neo4j encerrada.")
 
-    async def execute_query(self, query: str, parameters: Optional[dict] = None):
-        """Execute a Cypher query and return the results."""
-        if not self.driver:
-            raise RuntimeError("Driver Neo4j não está conectado. Chame connect() primeiro.")
-        
-        async with self.driver.session() as session:
-            result = await session.run(query, parameters or {})
-            records = await result.data()
-            return records
+    def query(self, cypher_query: str, parameters: dict = None) -> list[dict]:
+        """Executa uma query Cypher e retorna os resultados formatados como lista de dicionários."""
+        if not self._driver:
+            self.connect()
 
-    async def execute_write(self, query: str, parameters: Optional[dict] = None):
-        """Execute a write Cypher query."""
-        if not self.driver:
-            raise RuntimeError("Driver Neo4j não está conectado. Chame connect() primeiro.")
-        
-        async with self.driver.session() as session:
-            result = await session.run(query, parameters or {})
-            await result.consume()
+        with self._driver.session() as session:
+            result = session.run(cypher_query, parameters or {})
+            return [record.data() for record in result]
