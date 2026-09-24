@@ -9,7 +9,6 @@ class Neo4jClient:
         self._driver: Driver | None = None
 
     def connect(self):
-        """Inicializa a conexão com o banco Neo4j."""
         if not self._driver:
             self._driver = GraphDatabase.driver(
                 self.uri,
@@ -20,13 +19,11 @@ class Neo4jClient:
             print("✅ Conexão estabelecida com o Neo4j com sucesso!")
 
     def close(self):
-        """Encerra o driver do Neo4j."""
         if self._driver:
             self._driver.close()
             print("🔌 Conexão com o Neo4j encerrada.")
 
     def query(self, cypher_query: str, parameters: dict = None) -> list[dict]:
-        """Executa uma query Cypher e retorna os resultados formatados como lista de dicionários."""
         if not self._driver:
             self.connect()
 
