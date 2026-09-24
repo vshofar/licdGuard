@@ -2,10 +2,10 @@ from neo4j import GraphDatabase, Driver
 from config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 class Neo4jClient:
-    def __init__(self):
-        self.uri = NEO4J_URI
-        self.user = NEO4J_USER
-        self.password = NEO4J_PASSWORD
+    def __init__(self, uri: str = None, user: str = None, password: str = None):
+        self.uri = uri or NEO4J_URI
+        self.user = user or NEO4J_USER
+        self.password = password or NEO4J_PASSWORD
         self._driver: Driver | None = None
 
     def connect(self):
