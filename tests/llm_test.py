@@ -1,14 +1,13 @@
 import time
+import pytest
 from config import GROQ_API_KEY, GEMINI_API_KEY
 from google import genai
 from groq import Groq
 
-print("🔍 Checando Chaves de API:")
-print(f" - GROQ_API_KEY: {'✅ Carregada' if GROQ_API_KEY else '❌ Não encontrada'}")
-print(f" - GEMINI_API_KEY: {'✅ Carregada' if GEMINI_API_KEY else '❌ Não encontrada'}\n")
 
+@pytest.mark.skipif(not GROQ_API_KEY, reason="GROQ_API_KEY not set")
 def test_groq():
-    print("🚀 Testando Groq (llama-3.3-70b-versatile)...")
+    print("🚀 Testing Groq (llama-3.3-70b-versatile)...")
     client = Groq(api_key=GROQ_API_KEY)
 
     prompt = (
@@ -25,12 +24,16 @@ def test_groq():
     )
     elapsed_time = (time.time() - start) * 1000
 
-    print(f"⚡ Resposta da Groq em {elapsed_time:.2f} ms:")
+    print(f"⚡ Groq response in {elapsed_time:.2f} ms:")
     print(response.choices[0].message.content)
     print("-" * 50)
 
+    assert response.choices[0].message.content is not None
+
+
+@pytest.mark.skipif(not GEMINI_API_KEY, reason="GEMINI_API_KEY not set")
 def test_gemini():
-    print("\n♊ Testando Google Gemini (gemini-2.5-flash)...")
+    print("\n♊ Testing Google Gemini (gemini-2.5-flash)...")
     client = genai.Client(api_key=GEMINI_API_KEY)
 
     prompt = (
@@ -45,12 +48,8 @@ def test_gemini():
     )
     elapsed_time = (time.time() - start) * 1000
 
-    print(f"⚡ Resposta do Gemini em {elapsed_time:.2f} ms:")
+    print(f"⚡ Gemini response in {elapsed_time:.2f} ms:")
     print(response.text[:300] + "...\n[Texto truncado para exibição]")
     print("-" * 50)
 
-if __name__ == "__main__":
-    if GROQ_API_KEY:
-        test_groq()
-    if GEMINI_API_KEY:
-        test_gemini()
+    assert response.text is not None

@@ -1,26 +1,42 @@
+import pytest
 from testcontainers.neo4j import Neo4jContainer
 from src.database.neo4j_client import Neo4jClient
 
 
-def test_neo4j_with_container():
-    print("🐳 Starting Neo4j Docker container for automated testing...")
-
+@pytest.fixture(scope="module")
+def neo4j_container():
+    """Create a Neo4j container that persists across all tests in the module."""
+    print("🐳 Starting Neo4j container for module...")
     with Neo4jContainer("neo4j:5") as neo4j_docker:
-        uri = neo4j_docker.get_connection_url()
-        username = neo4j_docker.username
-        password = neo4j_docker.password
+        yield neo4j_docker
+    print("🧹 Neo4j container destroyed after all tests")
 
-        print(f"⚡ Neo4j container running at dynamic URL: {uri}")
 
-        db = Neo4jClient(uri=uri, user=username, password=password)
-        db.connect()
+@pytest.fixture(scope="module")
+def neo4j_client(neo4j_container):
+    """Create a Neo4j client that persists across all tests in the module."""
+    uri = neo4j_container.get_connection_url()
+    username = neo4j_container.username
+    password = neo4j_container.password
+    
+    print(f"⚡ Neo4j running at: {uri}")
+    
+    db = Neo4jClient(uri=uri, user=username, password=password)
+    db.connect()
+    yield db
+    db.close()
 
-        try:
-            validate_licid(db)
-        finally:
-            db.close()
 
-    print("🧹 Test completed! Ephemeral Docker container destroyed successfully.")
+def clear_database(db):
+    """Clear all data from the Neo4j database."""
+    cypher = "MATCH (n) DETACH DELETE n"
+    db.query(cypher)
+
+
+def test_neo4j_with_container(neo4j_client):
+    print("🧪 Running test_neo4j_with_container...")
+    
+    clear_database(neo4j_client)
 
 
 def validate_licid(db: Neo4jClient):
