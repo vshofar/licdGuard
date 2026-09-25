@@ -26,10 +26,14 @@ licdGuard/
 │   │   └── ingestor_schemas.py # Schemas Pydantic para validação
 │   ├── prompts/
 │   │   └── report_templates.py # Prompts para LLM
+│   ├── services/
+│   │   ├── brasil_api_service.py # Integração com BrasilAPI (dados de CNPJ)
+│   │   └── pncp_api_service.py   # Integração com PNCP API (licitações)
 │   └── main.py               # Pipeline principal
 ├── tests/
 │   ├── pipeline_test.py      # Testes end-to-end
-│   └── agents/               # Testes unitários dos agentes
+│   ├── agents/               # Testes unitários dos agentes
+│   └── services/             # Testes unitários dos serviços de API
 └── requirements.txt
 ```
 
@@ -42,6 +46,15 @@ licdGuard/
   - Propostas de cobertura (valores acima de 20% do estimado)
 - **RedactorAgent**: Utiliza Google Gemini para gerar relatórios forenses em português
 
+### 🔌 Serviços de Integração
+
+- **BrasilAPIService**: Integração com BrasilAPI para consulta de dados cadastrais de CNPJ
+  - Busca razão social, endereço e quadro de sócios (QSA)
+  - Retorna dados estruturados via Pydantic schemas
+- **PNCPApiService**: Integração com PNCP API para consulta de licitações públicas
+  - Busca dados de licitações por órgão, ano e sequencial
+  - Recupera propostas de fornecedores associadas
+
 ---
 
 ## 🛠️ Tech Stack
@@ -50,6 +63,7 @@ licdGuard/
 * **Graph Database:** Neo4j (Cypher Query Language)
 * **LLM Orchestration:** LangChain & `langchain-google-genai` (Google Gemini)
 * **LLM Provider:** GROQ & Google Gemini
+* **HTTP Client:** httpx
 * **Data Validation:** Pydantic v2
 * **Testing Infrastructure:** Pytest & Testcontainers (Neo4j Docker Container efêmero)
 * **Environment Management:** python-dotenv
@@ -142,3 +156,4 @@ O projeto inclui testes automatizados que:
 - Populam dados de teste
 - Executam o pipeline completo
 - Validam os resultados da auditoria
+- Testam integrações com APIs externas (BrasilAPI e PNCP) usando mocks

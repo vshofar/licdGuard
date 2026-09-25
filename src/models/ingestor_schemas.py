@@ -1,10 +1,12 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
+from typing import Optional
 
 
 class PartnerInput(BaseModel):
     masked_cpf: str = Field(description="CPF mascarado do sócio")
     name: str = Field(description="Nome completo do sócio")
-    participation_pct: float = Field(default=0.0, description="Percentual de participação societária")
+    participation_pct: Optional[float] = Field(default=None, description="Percentual de participação societária")
+    role: Optional[str] = Field(default=None, description="Cargo/qualificação do sócio")
 
 
 class CompanyInput(BaseModel):
@@ -16,7 +18,6 @@ class CompanyInput(BaseModel):
     @field_validator("cnpj")
     @classmethod
     def normalize_cnpj(cls, v: str) -> str:
-        # Remove caracteres não numéricos para padronizar as buscas no Neo4j
         clean_cnpj = "".join(filter(str.isdigit, v))
         if len(clean_cnpj) != 14:
             raise ValueError(f"CNPJ inválido: {v}")
