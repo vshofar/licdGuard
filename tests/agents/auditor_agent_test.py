@@ -48,7 +48,7 @@ def test_auditor_agent_no_fraud(neo4j_client: Neo4jClient):
 
 
     ingestor = IngestorAgent(neo4j_client=neo4j_client)
-    auditor = AuditorAgent(db=neo4j_client)
+    auditor = AuditorAgent(neo4j_client=neo4j_client)
 
     # -------------------------------------------------------------
     # SCENARIO : Legit Bidding (Low Risk)
@@ -110,7 +110,7 @@ def test_auditor_agent_fraud_scenarios(neo4j_client):
     clear_database(neo4j_client)
 
     ingestor = IngestorAgent(neo4j_client=neo4j_client)
-    auditor = AuditorAgent(db=neo4j_client)
+    auditor = AuditorAgent(neo4j_client=neo4j_client)
 
     # -------------------------------------------------------------
     # SCENARIO 1: Bidding with Full Cartel Setup (High Risk)

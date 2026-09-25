@@ -3,8 +3,8 @@ from src.database.neo4j_client import Neo4jClient
 
 
 class AuditorAgent:
-    def __init__(self, db: Neo4jClient):
-        self.db = db
+    def __init__(self, neo4j_client: Neo4jClient):
+        self.db = neo4j_client
 
     def audit_tender(self, tender_id: str) -> Dict[str, Any]:
         """Executes a full audit for a specific tender."""

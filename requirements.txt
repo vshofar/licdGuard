@@ -6,3 +6,4 @@ httpx>=0.28.0
 neo4j>=5.0.0
 testcontainers>=4.0.0
 pytest>=8.0.0
+langchain-google-genai
