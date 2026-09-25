@@ -2,6 +2,8 @@
 
 **Licit-Guard** é um pipeline automatizado de detecção de fraudes e conluios em licitações públicas brasileiras. A solução utiliza um **Knowledge Graph (Neo4j)** para identificar relacionamentos ocultos entre licitantes (sócios em comum, endereços compartilhados e propostas de cobertura) e alavanca **LLMs (Google Gemini via LangChain)** para gerar pareceres técnicos forenses em linguagem natural.
 
+> ⚠️ **Atenção:** Este é um projeto de estudos em processo de validação. Não deve ser utilizado em ambiente de produção ou para tomada de decisões reais em processos licitatórios.
+
 ---
 
 ## 🏗️ Arquitetura do Sistema
