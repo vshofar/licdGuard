@@ -1,8 +1,5 @@
-import os
 import sys
-from dotenv import load_dotenv
-
-load_dotenv()
+from config import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
 from src.database.neo4j_client import Neo4jClient
 from src.models.ingestor_schemas import (
@@ -58,11 +55,7 @@ def populate_mock_data(ingestor: IngestorAgent):
 def run_pipeline(bidding_id: str = "PNCP-FRAUDE-01") -> dict:
     print("🚀 Iniciando Pipeline Licit-Guard...")
 
-    neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-    neo4j_user = os.getenv("NEO4J_USER", "neo4j")
-    neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
-
-    db = Neo4jClient(uri=neo4j_uri, user=neo4j_user, password=neo4j_password)
+    db = Neo4jClient(uri=NEO4J_URI, user=NEO4J_USER, password=NEO4J_PASSWORD)
     db.connect()
 
     try:
