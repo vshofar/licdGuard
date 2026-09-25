@@ -108,14 +108,14 @@ def test_auditor_agent_fraud_scenarios():
             fraud_report = auditor.audit_tender("PNCP-FRAUD-01")
 
             print(f" • Calculated Risk Score: {fraud_report['risk_score']}/100")
-            print(f" • Shared Partners: {len(fraud_report['alertas']['socios_compartilhados'])}")
-            print(f" • Matching Addresses: {len(fraud_report['alertas']['enderecos_coincidentes'])}")
-            print(f" • Cover Biddings: {len(fraud_report['alertas']['propostas_cobertura'])}")
+            print(f" • Shared Partners: {len(fraud_report['alerts']['shared_partners'])}")
+            print(f" • Matching Addresses: {len(fraud_report['alerts']['matching_addresses'])}")
+            print(f" • Cover Biddings: {len(fraud_report['alerts']['cover_bids'])}")
 
             assert fraud_report["risk_score"] >= 80
-            assert len(fraud_report["alertas"]["socios_compartilhados"]) == 1
-            assert len(fraud_report["alertas"]["enderecos_coincidentes"]) == 1
-            assert len(fraud_report["alertas"]["propostas_cobertura"]) == 1
+            assert len(fraud_report["alerts"]["shared_partners"]) == 1
+            assert len(fraud_report["alerts"]["matching_addresses"]) == 1
+            assert len(fraud_report["alerts"]["cover_bids"]) == 1
 
             print("\n🔍 Auditing Legitimate Scenario...")
             legit_report = auditor.audit_tender("PNCP-LEGIT-02")
@@ -125,7 +125,7 @@ def test_auditor_agent_fraud_scenarios():
             assert legit_report["risk_score"] == 0
             assert len(legit_report["alerts"]["shared_partners"]) == 0
             assert len(legit_report["alerts"]["matching_addresses"]) == 0
-            assert len(legit_report["alerts"]["cover_biddings"]) == 0
+            assert len(legit_report["alerts"]["cover_bids"]) == 0
 
             print("\n✅ All assertions passed successfully!")
 
