@@ -8,3 +8,4 @@ testcontainers>=4.0.0
 pytest>=8.0.0
 langchain-google-genai
 pytest-httpx>=0.30.0
+pytest-xdist
