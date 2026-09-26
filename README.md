@@ -65,7 +65,7 @@ licdGuard/
 * **LLM Provider:** GROQ & Google Gemini
 * **HTTP Client:** httpx
 * **Data Validation:** Pydantic v2
-* **Testing Infrastructure:** Pytest & Testcontainers (Neo4j Docker Container efêmero)
+* **Testing Infrastructure:** Pytest, Testcontainers (Neo4j Docker Container efêmero) & pytest-httpx
 * **Environment Management:** python-dotenv
 
 ---
@@ -152,8 +152,8 @@ O sistema calcula um score de risco (0-100) baseado em:
 ## 🧪 Testes
 
 O projeto inclui testes automatizados que:
-- Inicializam um container Neo4j temporário
+- Inicializam um container Neo4j temporário via Testcontainers
 - Populam dados de teste
 - Executam o pipeline completo
 - Validam os resultados da auditoria
-- Testam integrações com APIs externas (BrasilAPI e PNCP) usando mocks
+- Testam integrações com APIs externas (BrasilAPI e PNCP) usando pytest-httpx para mocking de requisições HTTP
