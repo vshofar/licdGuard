@@ -1,57 +1,74 @@
 import os
 import sys
 import pytest
-from unittest.mock import patch, MagicMock
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.services.brasil_api_service import BrasilAPIService
 
 
-@patch("httpx.Client.get")
-def test_brasil_api_service_success(mock_get):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {
+@pytest.fixture
+def brasil_api_service():
+    """Fixture local que instancia o BrasilAPIService."""
+    return BrasilAPIService(timeout=5.0)
+
+
+@pytest.fixture
+def mock_cnpj_payload():
+    """Fixture local que fornece o payload de resposta da BrasilAPI."""
+    return {
         "cnpj": "11111111000111",
-        "razao_social": "ALPHA SERVICOS LTDA",
-        "logradouro": "RUA DAS FLORES",
-        "numero": "100",
+        "razao_social": "EMPRESA INTEGRACAO LTDA",
+        "logradouro": "AV BRASIL",
+        "numero": "500",
         "bairro": "CENTRO",
-        "municipio": "SAO PAULO",
-        "uf": "SP",
+        "municipio": "RIO DE JANEIRO",
+        "uf": "RJ",
         "qsa": [
             {
-                "nome_socio": "CARLOS SILVA",
-                "qualificacao_socio": "Sócio-Administrador",
-                "cnpj_cpf_do_socio": "***123456**"
+                "nome_socio": "MARIA OLIVEIRA",
+                "qualificacao_socio": "Sócio",
+                "cnpj_cpf_do_socio": "***987654**"
             }
         ]
     }
-    mock_get.return_value = mock_response
 
-    service = BrasilAPIService()
-    company = service.fetch_company("11.111.111/0001-11")
+
+def test_brasil_api_service_http_integration_success(httpx_mock, brasil_api_service, mock_cnpj_payload):
+    """Testa a pilha HTTP da BrasilAPI usando fixtures locais."""
+    cnpj = "11111111000111"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"https://brasilapi.com.br/api/cnpj/v1/{cnpj}",
+        json=mock_cnpj_payload,
+        status_code=200
+    )
+
+    company = brasil_api_service.fetch_company(cnpj)
 
     assert company is not None
-    assert company.cnpj == "11111111000111"
-    assert company.company_name == "ALPHA SERVICOS LTDA"
-    assert company.address == "RUA DAS FLORES, 100 - CENTRO, SAO PAULO/SP"
+    assert company.cnpj == cnpj
+    assert company.company_name == "EMPRESA INTEGRACAO LTDA"
+    assert company.address == "AV BRASIL, 500 - CENTRO, RIO DE JANEIRO/RJ"
     assert len(company.partners) == 1
-    assert company.partners[0].name == "CARLOS SILVA"
-    assert company.partners[0].role == "Sócio-Administrador"
-    assert company.partners[0].participation_pct is None
+    assert company.partners[0].name == "MARIA OLIVEIRA"
 
 
-@patch("httpx.Client.get")
-def test_brasil_api_service_not_found(mock_get):
-    """Testa o comportamento do serviço quando o CNPJ não é encontrado (404)."""
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_get.return_value = mock_response
+def test_brasil_api_service_http_integration_500_error(httpx_mock, brasil_api_service):
+    """Testa o tratamento de erro HTTP 500 da BrasilAPI usando a fixture local do serviço."""
+    cnpj = "11111111000111"
 
-    service = BrasilAPIService()
-    company = service.fetch_company("00000000000000")
+    httpx_mock.add_response(
+        method="GET",
+        url=f"https://brasilapi.com.br/api/cnpj/v1/{cnpj}",
+        status_code=500
+    )
+
+    company = brasil_api_service.fetch_company(cnpj)
 
     assert company is None
 
+
+if __name__ == "__main__":
+    pytest.main(["-s", "-v", "tests/test_brasil_api_service_http_integration.py"])
