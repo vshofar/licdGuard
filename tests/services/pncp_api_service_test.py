@@ -56,7 +56,7 @@ def test_pncp_service_http_integration_success(
     # 1. Intercepta a chamada de busca da Licitação/Contrato
     httpx_mock.add_response(
         method="GET",
-        url=f"https://pncp.gov.br/api/pncp/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}",
+        url=f"https://pncp.gov.br/api/consulta/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}",
         json=mock_bidding_payload,
         status_code=200
     )
@@ -64,7 +64,7 @@ def test_pncp_service_http_integration_success(
     # 2. Intercepta a chamada subsequente de busca das Propostas
     httpx_mock.add_response(
         method="GET",
-        url=f"https://pncp.gov.br/api/pncp/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}/propostas",
+        url=f"https://pncp.gov.br/api/consulta/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}/propostas",
         json=mock_proposals_payload,
         status_code=200
     )
@@ -89,7 +89,7 @@ def test_pncp_service_http_integration_404_not_found(httpx_mock, pncp_service):
 
     httpx_mock.add_response(
         method="GET",
-        url=f"https://pncp.gov.br/api/pncp/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}",
+        url=f"https://pncp.gov.br/api/consulta/v1/orgaos/{cnpj_orgao}/compras/{ano}/{seq}",
         status_code=404
     )
 
