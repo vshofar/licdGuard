@@ -1,7 +1,11 @@
 import httpx
 from typing import Optional
-
-from models import PartnerInput
+from src.services.exceptions.exceptions import (
+    BadRequest,
+    ResourceNotFound,
+    InternalError,
+    UnknownRequestException
+)
 from src.models.ingestor_schemas import CompanyInput, PartnerInput
 
 
@@ -13,6 +17,16 @@ class BrasilAPIService:
         self.timeout = timeout
         self.headers = {"accept": "application/json"}
 
+    def _handle_response_status(self, status_code: int, resource_id: str):
+        if status_code == 400:
+            raise BadRequest(f"Bad request for company {resource_id}")
+        elif status_code == 404:
+            raise ResourceNotFound(f"Company {resource_id} not found")
+        elif status_code == 500:
+            raise InternalError(f"Internal server error fetching company {resource_id}")
+        elif status_code != 200:
+            raise UnknownRequestException(f"Unknown error fetching company {resource_id}. Status code: {status_code}")
+
     def fetch_company(self, cnpj: str) -> Optional[CompanyInput]:
 
         clean_cnpj = "".join(filter(str.isdigit, cnpj))
@@ -21,9 +35,7 @@ class BrasilAPIService:
         try:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.get(url, headers=self.headers)
-                if response.status_code != 200:
-                    print(f"⚠️ BrasilAPI: Falha ao buscar CNPJ {clean_cnpj} (Status {response.status_code})")
-                    return None
+                self._handle_response_status(response.status_code, clean_cnpj)
 
                 data = response.json()
 
@@ -37,6 +49,8 @@ class BrasilAPIService:
                 )
 
         except Exception as e:
+            if isinstance(e, (BadRequest, ResourceNotFound, InternalError, UnknownRequestException)):
+                raise
             print(f"❌ Erro de conexão com BrasilAPI para o CNPJ {clean_cnpj}: {e}")
             return None
 

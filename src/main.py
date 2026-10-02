@@ -45,10 +45,13 @@ def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
         for proposal in tender.proposals:
             if proposal.company_cnpj:
                 print(f"🔍 [BrasilAPI] Consultando empresa {proposal.company_cnpj}...")
-                company = brasil_api_service.fetch_company(proposal.company_cnpj)
-                if company:
-                    ingestor.save_company_with_partners(company)
-                    print(f"✅ Empresa '{company.company_name}' e QSA salvos no Neo4j.")
+                try:
+                    company = brasil_api_service.fetch_company(proposal.company_cnpj)
+                    if company:
+                        ingestor.save_company_with_partners(company)
+                        print(f"✅ Empresa '{company.company_name}' e QSA salvos no Neo4j.")
+                except Exception as e:
+                    print(f"⚠️ Erro ao buscar empresa {proposal.company_cnpj}: {e}")
 
         # 4. Auditoria Forense via Cypher
         print("🔍 Executando auditoria no Neo4j...")

@@ -5,6 +5,7 @@ import pytest
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.services.brasil_api_service import BrasilAPIService
+from src.services.exceptions.exceptions import ResourceNotFound, InternalError
 
 
 @pytest.fixture
@@ -65,10 +66,23 @@ def test_brasil_api_service_http_integration_500_error(httpx_mock, brasil_api_se
         status_code=500
     )
 
-    company = brasil_api_service.fetch_company(cnpj)
+    with pytest.raises(InternalError):
+        brasil_api_service.fetch_company(cnpj)
 
-    assert company is None
+
+def test_brasil_api_service_http_integration_404_error(httpx_mock, brasil_api_service):
+    """Testa o tratamento de erro HTTP 404 da BrasilAPI."""
+    cnpj = "00000000000000"
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"https://brasilapi.com.br/api/cnpj/v1/{cnpj}",
+        status_code=404
+    )
+
+    with pytest.raises(ResourceNotFound):
+        brasil_api_service.fetch_company(cnpj)
 
 
 if __name__ == "__main__":
-    pytest.main(["-s", "-v", "tests/test_brasil_api_service_http_integration.py"])
+    pytest.main(["-s", "-v", __file__])
