@@ -68,5 +68,8 @@ def run_pipeline_live(id_compra: str) -> dict:
 
         return {"audit_results": audit_results, "report": report}
 
+    except Exception as e:
+        print(f"❌ Erro ao processar licitação {id_compra}: {e}")
+        return {}
     finally:
         db.close()

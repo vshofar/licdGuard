@@ -13,9 +13,7 @@ from src.database.neo4j_client import Neo4jClient
 from src.main import run_pipeline_live
 
 # Dados de uma licitação pública real mantida no PNCP para validação
-REAL_TEST_CNPJ = "00394460000141"
-REAL_TEST_ANO = 2024
-REAL_TEST_SEQ = 1
+REAL_TENDER_ID = "16017505900062024"
 
 CONTAINER_NAME = "licitguard-neo4j-e2e"
 NEO4J_IMAGE = "neo4j:5.18.0"
@@ -90,8 +88,8 @@ def run_e2e_test():
             print("❌ Erro: Tempo limite excedido aguardando o Neo4j.")
             sys.exit(1)
 
-        print(f"🔄 Executando consulta real no PNCP ({REAL_TEST_CNPJ}/{REAL_TEST_ANO}-{REAL_TEST_SEQ})...")
-        result = run_pipeline_live(REAL_TEST_CNPJ, REAL_TEST_ANO, REAL_TEST_SEQ)
+        print(f"🔄 Executando consulta real no PNCP ({REAL_TENDER_ID})...")
+        result = run_pipeline_live(REAL_TENDER_ID)
 
         if not result or "report" not in result or not result["report"]:
             print("❌ Teste E2E falhou: O relatório gerado veio vazio.")
