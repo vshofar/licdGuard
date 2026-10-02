@@ -5,19 +5,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from src.database.neo4j_client import Neo4jClient
-from src.services.pncp_api_service import PNCPApiService
+from src.services.comprasnet_service import ComprasnetService
 from src.services.brasil_api_service import BrasilAPIService
 from src.agents.ingestor_agent import IngestorAgent
 from src.agents.auditor_agent import AuditorAgent
 from src.agents.redactor_agent import RedactorAgent
 
 
-def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
-    bidding_id = f"{cnpj_orgao}-{ano}-{sequencial}"
-    print(f"🚀 Iniciando Pipeline Licit-Guard (Modo REAL): Licitação {bidding_id}...")
+def run_pipeline_live(id_compra: str) -> dict:
+    print(f"🚀 Iniciando Pipeline Licit-Guard (Modo REAL): Licitação {id_compra}...")
 
     # Instanciação dos Clientes e Serviços
-    pncp_api_service = PNCPApiService()
+    comprasnet_service = ComprasnetService()
     brasil_api_service = BrasilAPIService()
 
     neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
@@ -32,11 +31,11 @@ def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
         auditor = AuditorAgent(neo4j_client=db)
         redactor = RedactorAgent()
 
-        print(f"🔍 [PNCP] Consultando licitação {cnpj_orgao}/{ano}-{sequencial}...")
-        tender = pncp_api_service.fetch_tender(cnpj_orgao, ano, sequencial)
+        print(f"🔍 [Comprasnet] Consultando licitação {id_compra}...")
+        tender = comprasnet_service.fetch_tender_by_id(id_compra)
 
         if not tender:
-            print("❌ Licitação não encontrada no PNCP.")
+            print("❌ Licitação não encontrada no Comprasnet.")
             return {}
 
         ingestor.save_tender_with_proposals(tender)
@@ -55,7 +54,7 @@ def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
 
         # 4. Auditoria Forense via Cypher
         print("🔍 Executando auditoria no Neo4j...")
-        audit_results = auditor.audit_tender(bidding_id)
+        audit_results = auditor.audit_tender(id_compra)
 
         # 5. Geração do Parecer com a LLM Gemini
         print("🧠 Gerando parecer técnico com Gemini...")
