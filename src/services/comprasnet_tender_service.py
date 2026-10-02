@@ -1,0 +1,44 @@
+import httpx
+from typing import Optional, Dict, Any
+from src.services.exceptions.exceptions import (
+    BadRequest,
+    ResourceNotFound,
+    InternalError,
+    UnknownRequestException
+)
+
+
+class ComprasnetTenderService:
+    BASE_URL = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
+
+    def __init__(self, timeout: float = 20.0):
+        self.headers = {
+            "accept": "application/json",
+            "User-Agent": "LicitGuard-AuditPipeline/1.0",
+        }
+        self.timeout = timeout
+
+    def _handle_response_status(self, status_code: int, resource_id: str):
+        if status_code == 400:
+            raise BadRequest(f"Bad request for tender {resource_id}")
+        elif status_code == 404:
+            raise ResourceNotFound(f"Tender {resource_id} not found")
+        elif status_code == 500:
+            raise InternalError(f"Internal server error fetching tender {resource_id}")
+        elif status_code != 200:
+            raise UnknownRequestException(f"Unknown error fetching tender {resource_id}. Status code: {status_code}")
+
+    def fetch_tender(self, id_compra: str) -> Optional[Dict[str, Any]]:
+        url = f"{self.BASE_URL}/1.1_consultarContratacoes_PNCP_14133_Id"
+        params = {"tipo": "idCompra", "codigo": id_compra}
+
+        try:
+            with httpx.Client(headers=self.headers, follow_redirects=True, timeout=self.timeout) as client:
+                response = client.get(url, params=params)
+                self._handle_response_status(response.status_code, id_compra)
+                result = response.json().get("resultado", [])
+                return result[0] if result else None
+        except Exception as e:
+            if isinstance(e, (BadRequest, ResourceNotFound, InternalError, UnknownRequestException)):
+                raise
+            raise Exception(f"Failed to fetch tender {id_compra}: {e}") from e
