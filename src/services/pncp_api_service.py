@@ -8,7 +8,7 @@ from src.models.ingestor_schemas import TenderInput, ProposalInput
 
 class PNCPApiService:
 
-    BASE_URL = "https://pncp.gov.br/api/pncp/v1"
+    BASE_URL = "https://pncp.gov.br/api/consulta/v1"
 
     def __init__(self, timeout: float = 10.0):
         self.timeout = timeout
@@ -18,6 +18,8 @@ class PNCPApiService:
 
         clean_cnpj = "".join(filter(str.isdigit, cnpj_orgao))
         endpoint = f"{self.BASE_URL}/orgaos/{clean_cnpj}/compras/{ano}/{sequencial}"
+
+        print(endpoint)
 
         try:
             with httpx.Client(timeout=self.timeout) as client:

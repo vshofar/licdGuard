@@ -32,7 +32,6 @@ def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
         auditor = AuditorAgent(neo4j_client=db)
         redactor = RedactorAgent()
 
-        # 1. Busca licitação e propostas no PNCP
         print(f"🔍 [PNCP] Consultando licitação {cnpj_orgao}/{ano}-{sequencial}...")
         tender = pncp_api_service.fetch_tender(cnpj_orgao, ano, sequencial)
 
@@ -40,11 +39,9 @@ def run_pipeline_live(cnpj_orgao: str, ano: int, sequencial: int) -> dict:
             print("❌ Licitação não encontrada no PNCP.")
             return {}
 
-        # 2. Ingestão da Licitação no Neo4j
         ingestor.save_tender_with_proposals(tender)
         print(f"✅ Licitação '{tender.tender_id}' salva no Neo4j.")
 
-        # 3. Para cada proposta, consulta a empresa/QSA na BrasilAPI e salva no Neo4j
         for proposal in tender.proposals:
             if proposal.company_cnpj:
                 print(f"🔍 [BrasilAPI] Consultando empresa {proposal.company_cnpj}...")
