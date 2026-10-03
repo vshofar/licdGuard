@@ -4,8 +4,8 @@ import pytest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.services.comprasnet_items_service import ComprasnetItemsService
-from src.services.exceptions.exceptions import ResourceNotFound, InternalError
+from src.services.apis.comprasnet_items_service import ComprasnetItemsService
+from src.services.apis.exceptions import ResourceNotFound, InternalError
 
 
 @pytest.fixture

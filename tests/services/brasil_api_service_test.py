@@ -4,8 +4,8 @@ import pytest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.services.brasil_api_service import BrasilAPIService
-from src.services.exceptions.exceptions import ResourceNotFound, InternalError
+from src.services.apis.brasil_api_service import BrasilAPIService
+from src.services.apis.exceptions import ResourceNotFound, InternalError
 
 
 @pytest.fixture

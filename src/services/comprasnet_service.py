@@ -1,8 +1,8 @@
 from typing import Optional, List, Dict, Any
 from src.models import TenderInput, ProposalInput
-from src.services.comprasnet_tender_service import ComprasnetTenderService
-from src.services.comprasnet_items_service import ComprasnetItemsService
-from src.services.comprasnet_proposals_service import ComprasnetProposalsService
+from src.services.apis.comprasnet_tender_service import ComprasnetTenderService
+from src.services.apis.comprasnet_items_service import ComprasnetItemsService
+from src.services.apis.comprasnet_proposals_service import ComprasnetProposalsService
 
 
 class ComprasnetService:

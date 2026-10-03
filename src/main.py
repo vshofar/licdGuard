@@ -1,12 +1,12 @@
 import os
-import sys
 from dotenv import load_dotenv
+
+from src.services.apis.brasil_api_service import BrasilAPIService
 
 load_dotenv()
 
 from src.database.neo4j_client import Neo4jClient
 from src.services.comprasnet_service import ComprasnetService
-from src.services.brasil_api_service import BrasilAPIService
 from src.agents.ingestor_agent import IngestorAgent
 from src.agents.auditor_agent import AuditorAgent
 from src.agents.redactor_agent import RedactorAgent

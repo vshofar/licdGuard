@@ -1,6 +1,6 @@
 import httpx
 from typing import Optional
-from src.services.exceptions.exceptions import (
+from src.services.apis.exceptions.exceptions import (
     BadRequest,
     ResourceNotFound,
     InternalError,
