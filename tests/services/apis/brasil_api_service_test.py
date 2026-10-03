@@ -35,7 +35,7 @@ def mock_cnpj_payload():
     }
 
 
-class TestBrasilApiService:
+class TestBrasilAPIService:
     def test_brasil_api_service_http_integration_success(self, httpx_mock, brasil_api_service, mock_cnpj_payload):
         """Testa a pilha HTTP da BrasilAPI usando fixtures locais."""
         cnpj = "11111111000111"

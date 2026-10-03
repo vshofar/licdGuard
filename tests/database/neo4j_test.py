@@ -33,7 +33,7 @@ def clear_database(db):
     db.query(cypher)
 
 
-class TestNeo4j:
+class TestNeo4jClient:
     def test_neo4j_with_container(self, neo4j_client):
         print("🧪 Running test_neo4j_with_container...")
         

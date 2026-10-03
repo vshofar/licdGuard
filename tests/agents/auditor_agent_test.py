@@ -42,7 +42,7 @@ def clear_database(db):
     db.query(cypher)
 
 
-class TestAuditorAgentNoFraud:
+class TestAuditorAgent:
     def test_auditor_agent_no_fraud(self, neo4j_client: Neo4jClient):
         print("🐳 Starting ephemeral Neo4j container to test fraud detection...")
         clear_database(neo4j_client)
