@@ -76,63 +76,66 @@ def mock_company_input():
     )
 
 
-def test_run_pipeline_live_success(
-    mock_comprasnet_service,
-    mock_brasil_api_service,
-    mock_ingestor_agent,
-    mock_auditor_agent,
-    mock_redactor_agent,
-    mock_neo4j_client,
-    mock_tender_input,
-    mock_company_input,
-    monkeypatch
-):
-    """Testa a orquestração do run_pipeline_live encadeando os serviços e agentes."""
+class TestPipeline:
+    def test_run_pipeline_live_success(
+        self,
+        mock_comprasnet_service,
+        mock_brasil_api_service,
+        mock_ingestor_agent,
+        mock_auditor_agent,
+        mock_redactor_agent,
+        mock_neo4j_client,
+        mock_tender_input,
+        mock_company_input,
+        monkeypatch
+    ):
+        """Testa a orquestração do run_pipeline_live encadeando os serviços e agentes."""
 
-    mock_comprasnet_service.fetch_tender_by_id.return_value = mock_tender_input
-    mock_brasil_api_service.fetch_company.return_value = mock_company_input
-    mock_auditor_agent.audit_tender.return_value = {"risk_score": 0.0, "findings": []}
-    mock_redactor_agent.generate_report.return_value = "PARECER: Licitação sem indícios de conluio."
+        mock_comprasnet_service.fetch_tender_by_id.return_value = mock_tender_input
+        mock_brasil_api_service.fetch_company.return_value = mock_company_input
+        mock_auditor_agent.audit_tender.return_value = {"risk_score": 0.0, "findings": []}
+        mock_redactor_agent.generate_report.return_value = "PARECER: Licitação sem indícios de conluio."
 
-    monkeypatch.setattr("src.main.ComprasnetService", lambda: mock_comprasnet_service)
-    monkeypatch.setattr("src.main.BrasilAPIService", lambda: mock_brasil_api_service)
-    monkeypatch.setattr("src.main.IngestorAgent", lambda neo4j_client: mock_ingestor_agent)
-    monkeypatch.setattr("src.main.AuditorAgent", lambda neo4j_client: mock_auditor_agent)
-    monkeypatch.setattr("src.main.RedactorAgent", lambda: mock_redactor_agent)
-    monkeypatch.setattr("src.main.Neo4jClient", lambda uri, user, password: mock_neo4j_client)
+        monkeypatch.setattr("src.main.ComprasnetService", lambda: mock_comprasnet_service)
+        monkeypatch.setattr("src.main.BrasilAPIService", lambda: mock_brasil_api_service)
+        monkeypatch.setattr("src.main.IngestorAgent", lambda neo4j_client: mock_ingestor_agent)
+        monkeypatch.setattr("src.main.AuditorAgent", lambda neo4j_client: mock_auditor_agent)
+        monkeypatch.setattr("src.main.RedactorAgent", lambda: mock_redactor_agent)
+        monkeypatch.setattr("src.main.Neo4jClient", lambda uri, user, password: mock_neo4j_client)
 
-    result = run_pipeline_live(id_compra="123456789")
+        result = run_pipeline_live(id_compra="123456789")
 
-    mock_comprasnet_service.fetch_tender_by_id.assert_called_once_with("123456789")
-    mock_ingestor_agent.save_tender_with_proposals.assert_called_once_with(mock_tender_input)
-    mock_brasil_api_service.fetch_company.assert_called_once_with("11111111000111")
-    mock_ingestor_agent.save_company_with_partners.assert_called_once_with(mock_company_input)
-    mock_auditor_agent.audit_tender.assert_called_once_with("123456789")
-    mock_redactor_agent.generate_report.assert_called_once()
+        mock_comprasnet_service.fetch_tender_by_id.assert_called_once_with("123456789")
+        mock_ingestor_agent.save_tender_with_proposals.assert_called_once_with(mock_tender_input)
+        mock_brasil_api_service.fetch_company.assert_called_once_with("11111111000111")
+        mock_ingestor_agent.save_company_with_partners.assert_called_once_with(mock_company_input)
+        mock_auditor_agent.audit_tender.assert_called_once_with("123456789")
+        mock_redactor_agent.generate_report.assert_called_once()
 
-    assert result["report"] == "PARECER: Licitação sem indícios de conluio."
+        assert result["report"] == "PARECER: Licitação sem indícios de conluio."
 
 
-def test_run_pipeline_live_bidding_not_found(
-    mock_comprasnet_service,
-    mock_ingestor_agent,
-    mock_auditor_agent,
-    mock_redactor_agent,
-    mock_neo4j_client,
-    monkeypatch
-):
-    """Testa a interrupção da pipeline caso a licitação não exista no Comprasnet."""
-    mock_comprasnet_service.fetch_tender_by_id.return_value = None
+    def test_run_pipeline_live_bidding_not_found(
+        self,
+        mock_comprasnet_service,
+        mock_ingestor_agent,
+        mock_auditor_agent,
+        mock_redactor_agent,
+        mock_neo4j_client,
+        monkeypatch
+    ):
+        """Testa a interrupção da pipeline caso a licitação não exista no Comprasnet."""
+        mock_comprasnet_service.fetch_tender_by_id.return_value = None
 
-    monkeypatch.setattr("src.main.ComprasnetService", lambda: mock_comprasnet_service)
-    monkeypatch.setattr("src.main.BrasilAPIService", lambda: MagicMock())
-    monkeypatch.setattr("src.main.IngestorAgent", lambda neo4j_client: mock_ingestor_agent)
-    monkeypatch.setattr("src.main.AuditorAgent", lambda neo4j_client: mock_auditor_agent)
-    monkeypatch.setattr("src.main.RedactorAgent", lambda: mock_redactor_agent)
-    monkeypatch.setattr("src.main.Neo4jClient", lambda uri, user, password: mock_neo4j_client)
+        monkeypatch.setattr("src.main.ComprasnetService", lambda: mock_comprasnet_service)
+        monkeypatch.setattr("src.main.BrasilAPIService", lambda: MagicMock())
+        monkeypatch.setattr("src.main.IngestorAgent", lambda neo4j_client: mock_ingestor_agent)
+        monkeypatch.setattr("src.main.AuditorAgent", lambda neo4j_client: mock_auditor_agent)
+        monkeypatch.setattr("src.main.RedactorAgent", lambda: mock_redactor_agent)
+        monkeypatch.setattr("src.main.Neo4jClient", lambda uri, user, password: mock_neo4j_client)
 
-    result = run_pipeline_live(id_compra="000000000")
+        result = run_pipeline_live(id_compra="000000000")
 
-    mock_comprasnet_service.fetch_tender_by_id.assert_called_once()
-    mock_ingestor_agent.save_tender_with_proposals.assert_not_called()
-    assert result == {}
+        mock_comprasnet_service.fetch_tender_by_id.assert_called_once()
+        mock_ingestor_agent.save_tender_with_proposals.assert_not_called()
+        assert result == {}

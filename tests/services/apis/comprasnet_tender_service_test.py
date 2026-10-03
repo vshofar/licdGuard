@@ -27,68 +27,69 @@ def mock_tender_payload():
     }
 
 
-def test_tender_service_http_integration_success(httpx_mock, tender_service, mock_tender_payload):
-    id_compra = "123456789"
-    base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
+class TestComprasnetTenderService:
+    def test_tender_service_http_integration_success(self, httpx_mock, tender_service, mock_tender_payload):
+        id_compra = "123456789"
+        base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
-    httpx_mock.add_response(
-        method="GET",
-        url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
-        json=mock_tender_payload,
-        status_code=200
-    )
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
+            json=mock_tender_payload,
+            status_code=200
+        )
 
-    tender = tender_service.fetch_tender(id_compra)
+        tender = tender_service.fetch_tender(id_compra)
 
-    assert tender is not None
-    assert tender["idCompra"] == "123456789"
-    assert tender["objetoCompra"] == "Prestação de Serviços de TI"
-    assert tender["valorTotalEstimado"] == 1500000.0
-    assert tender["orgaoEntidadeRazaoSocial"] == "MINISTERIO DA GESTAO"
-
-
-def test_tender_service_http_integration_empty_result(httpx_mock, tender_service):
-    id_compra = "000000000"
-    base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
-
-    httpx_mock.add_response(
-        method="GET",
-        url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
-        json={"resultado": []},
-        status_code=200
-    )
-
-    tender = tender_service.fetch_tender(id_compra)
-
-    assert tender is None
+        assert tender is not None
+        assert tender["idCompra"] == "123456789"
+        assert tender["objetoCompra"] == "Prestação de Serviços de TI"
+        assert tender["valorTotalEstimado"] == 1500000.0
+        assert tender["orgaoEntidadeRazaoSocial"] == "MINISTERIO DA GESTAO"
 
 
-def test_tender_service_http_integration_404_error(httpx_mock, tender_service):
-    id_compra = "000000000"
-    base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
+    def test_tender_service_http_integration_empty_result(self, httpx_mock, tender_service):
+        id_compra = "000000000"
+        base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
-    httpx_mock.add_response(
-        method="GET",
-        url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
-        status_code=404
-    )
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
+            json={"resultado": []},
+            status_code=200
+        )
 
-    with pytest.raises(ResourceNotFound):
-        tender_service.fetch_tender(id_compra)
+        tender = tender_service.fetch_tender(id_compra)
+
+        assert tender is None
 
 
-def test_tender_service_http_integration_500_error(httpx_mock, tender_service):
-    id_compra = "123456789"
-    base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
+    def test_tender_service_http_integration_404_error(self, httpx_mock, tender_service):
+        id_compra = "000000000"
+        base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
-    httpx_mock.add_response(
-        method="GET",
-        url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
-        status_code=500
-    )
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
+            status_code=404
+        )
 
-    with pytest.raises(InternalError):
-        tender_service.fetch_tender(id_compra)
+        with pytest.raises(ResourceNotFound):
+            tender_service.fetch_tender(id_compra)
+
+
+    def test_tender_service_http_integration_500_error(self, httpx_mock, tender_service):
+        id_compra = "123456789"
+        base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
+
+        httpx_mock.add_response(
+            method="GET",
+            url=f"{base_url}/1.1_consultarContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
+            status_code=500
+        )
+
+        with pytest.raises(InternalError):
+            tender_service.fetch_tender(id_compra)
 
 
 if __name__ == "__main__":

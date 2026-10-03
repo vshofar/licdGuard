@@ -33,34 +33,34 @@ def clear_database(db):
     db.query(cypher)
 
 
-def test_neo4j_with_container(neo4j_client):
-    print("🧪 Running test_neo4j_with_container...")
-    
-    clear_database(neo4j_client)
+class TestNeo4j:
+    def test_neo4j_with_container(self, neo4j_client):
+        print("🧪 Running test_neo4j_with_container...")
+        
+        clear_database(neo4j_client)
 
+    def validate_licid(self, db: Neo4jClient):
+        print("🏗️ Inserting test subgraph (Tender + Companies + Partners)...")
 
-def validate_licid(db: Neo4jClient):
-    print("🏗️ Inserting test subgraph (Tender + Companies + Partners)...")
+        cypher_population = create_licd_scenario()
+        db.query(cypher_population)
 
-    cypher_population = create_licd_scenario()
-    db.query(cypher_population)
+        print("✅ Subgraph inserted into Neo4j successfully!")
 
-    print("✅ Subgraph inserted into Neo4j successfully!")
+        print("\n🔍 Running Cypher audit on ephemeral graph...")
+        cypher_audit = query_licd_scenario()
+        results = db.query(cypher_audit)
 
-    print("\n🔍 Running Cypher audit on ephemeral graph...")
-    cypher_audit = query_licd_scenario()
-    results = db.query(cypher_audit)
+        assert len(results) > 0, "Audit query should return at least one alert."
 
-    assert len(results) > 0, "Audit query should return at least one alert."
-
-    result = results[0]
-    print("\n🚨 FRAUD ALERT DETECTED AND VALIDATED:")
-    print(f" • Audited Tender: {result['tender']}")
-    print(f" • Competitor Company A: {result['company1']}")
-    print(f" • Competitor Company B: {result['company2']}")
-    print(f" • Hidden Common Partner: {result['partner']}")
-    print(f" • Matching Addresses: {result['address1'] == result['address2']}")
-    print("-" * 60)
+        result = results[0]
+        print("\n🚨 FRAUD ALERT DETECTED AND VALIDATED:")
+        print(f" • Audited Tender: {result['tender']}")
+        print(f" • Competitor Company A: {result['company1']}")
+        print(f" • Competitor Company B: {result['company2']}")
+        print(f" • Hidden Common Partner: {result['partner']}")
+        print(f" • Matching Addresses: {result['address1'] == result['address2']}")
+        print("-" * 60)
 
 
 def query_licd_scenario() -> str:
