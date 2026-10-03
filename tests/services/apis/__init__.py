@@ -1,0 +1,22 @@
+from .brasil_api_service_test import test_brasil_api_service_http_integration_success, test_brasil_api_service_http_integration_500_error, test_brasil_api_service_http_integration_404_error
+from .comprasnet_items_service_test import test_items_service_http_integration_success, test_items_service_http_integration_empty_result, test_items_service_http_integration_404_error, test_items_service_http_integration_500_error
+from .comprasnet_proposals_service_test import test_proposals_service_http_integration_success, test_proposals_service_http_integration_empty_result, test_proposals_service_http_integration_404_error, test_proposals_service_http_integration_500_error
+from .comprasnet_tender_service_test import test_tender_service_http_integration_success, test_tender_service_http_integration_empty_result, test_tender_service_http_integration_404_error, test_tender_service_http_integration_500_error
+
+__all__ = [
+    "test_brasil_api_service_http_integration_success",
+    "test_brasil_api_service_http_integration_500_error",
+    "test_brasil_api_service_http_integration_404_error",
+    "test_items_service_http_integration_success",
+    "test_items_service_http_integration_empty_result",
+    "test_items_service_http_integration_404_error",
+    "test_items_service_http_integration_500_error",
+    "test_proposals_service_http_integration_success",
+    "test_proposals_service_http_integration_empty_result",
+    "test_proposals_service_http_integration_404_error",
+    "test_proposals_service_http_integration_500_error",
+    "test_tender_service_http_integration_success",
+    "test_tender_service_http_integration_empty_result",
+    "test_tender_service_http_integration_404_error",
+    "test_tender_service_http_integration_500_error"
+]

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "licdGuard"
+version = "0.1.0"
+description = "Licitação Guard - Sistema de auditoria de licitações públicas"
+requires-python = ">=3.10"
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+python_files = "*_test.py"
+addopts = "-n auto --dist=loadfile"
+testpaths = ["tests"]
+pythonpath = ["src"]
