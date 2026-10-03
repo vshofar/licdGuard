@@ -2,7 +2,7 @@ import os
 import sys
 import pytest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from src.services.apis.comprasnet_proposals_service import ComprasnetProposalsService
 from src.services.apis.exceptions import ResourceNotFound, InternalError
