@@ -1,75 +1,80 @@
 import pytest
-from models.ingestor_schemas_v2 import PublicAgencyNode, TenderNode
-from services.mappers.compras_net_tender_mapper import ComprasNetTenderMapper
+from models.ingestor_schemas_v2 import CompanyNode, TenderItemNode
+from services.mappers.comprasnet_winners_mapper import ItemResultadoConverter
 
 
 @pytest.fixture
-def valid_tender_payload() -> dict:
+def valid_result_payload() -> dict:
     return {
         "resultado": [
             {
+                "idCompraItem": "1601750590006202400001",
                 "idCompra": "16017505900062024",
-                "numeroControlePNCP": "00394452000103-1-000003/2024",
-                "anoCompraPncp": 2024,
-                "orgaoEntidadeCnpj": "00394452000103",
-                "orgaoEntidadeRazaoSocial": "COMANDO DO EXERCITO",
-                "unidadeOrgaoCodigoUnidade": "160175",
-                "unidadeOrgaoNomeUnidade": "ADMINISTRATIVA DA GUARNICÃO DE JOÃO PESSOA",
-                "numeroCompra": "90006",
-                "objetoCompra": "Contratação de Serviço de Instalação de Forro PVC e Gesso.",
-                "valorTotalEstimado": 465799.67,
-                "dataPublicacaoPncp": "2023-11-27T07:05:52"
+                "numeroItemPncp": 1,
+                "niFornecedor": "14208934000128",
+                "nomeRazaoSocialFornecedor": "CONSTRUTORA KARBONE E COMERCIAL LTDA",
+                "quantidadeHomologada": 310.0,
+                "valorUnitarioHomologado": 49.0,
+                "valorTotalHomologado": 15190.0,
+                "situacaoCompraItemResultadoId": 1
+            },
+            {
+                "idCompraItem": "1601750590006202400002",
+                "idCompra": "16017505900062024",
+                "numeroItemPncp": 2,
+                "niFornecedor": "14208934000128",
+                "nomeRazaoSocialFornecedor": "CONSTRUTORA KARBONE E COMERCIAL LTDA",
+                "quantidadeHomologada": 1542.0,
+                "valorUnitarioHomologado": 54.0,
+                "valorTotalHomologado": 83268.0,
+                "situacaoCompraItemResultadoId": 1
             }
         ],
-        "totalRegistros": 1
+        "totalRegistros": 2
     }
 
 
-class TestComprasNetTenderMapper:
+class TestItemResultadoConverter:
 
-    def test_to_nodes_success(self, valid_tender_payload: dict):
-        public_agency, tender = ComprasNetTenderMapper.to_nodes(valid_tender_payload)
+    def test_to_nodes_success(self, valid_result_payload: dict):
+        items, companies = ItemResultadoConverter.to_nodes(valid_result_payload)
 
-        assert isinstance(public_agency, PublicAgencyNode)
-        assert public_agency.cnpj == "00394452000103"
-        assert public_agency.agency_name == "COMANDO DO EXERCITO - ADMINISTRATIVA DA GUARNICÃO DE JOÃO PESSOA"
-        assert public_agency.uasg_code == "160175"
+        assert len(items) == 2
+        assert isinstance(items[0], TenderItemNode)
+        assert items[0].item_id == "1601750590006202400001"
+        assert items[0].tender_id == "16017505900062024"
+        assert items[0].item_number == 1
+        assert items[0].quantity_homologated == 310.0
+        assert items[0].unit_value_homologated == 49.0
+        assert items[0].total_value_homologated == 15190.0
+        assert items[0].winner_cnpj == "14208934000128"
 
-        assert isinstance(tender, TenderNode)
-        assert tender.tender_id == "16017505900062024"
-        assert tender.notice_number == "90006/2024"
-        assert tender.object_description == "Contratação de Serviço de Instalação de Forro PVC e Gesso."
-        assert tender.estimated_value == 465799.67
-        assert tender.publication_date == "2023-11-27"
-
-    def test_to_nodes_agency_without_optional_unit_name(self, valid_tender_payload: dict):
-        valid_tender_payload["resultado"][0]["unidadeOrgaoNomeUnidade"] = None
-
-        public_agency, _ = ComprasNetTenderMapper.to_nodes(valid_tender_payload)
-
-        assert public_agency.agency_name == "COMANDO DO EXERCITO"
+        assert len(companies) == 1
+        assert isinstance(companies[0], CompanyNode)
+        assert companies[0].cnpj == "14208934000128"
+        assert companies[0].legal_name == "CONSTRUTORA KARBONE E COMERCIAL LTDA"
 
     def test_to_nodes_empty_results_raises_value_error(self):
         empty_payload = {"resultado": [], "totalRegistros": 0}
 
         with pytest.raises(ValueError, match="The returned payload contains no records in the 'resultado' key."):
-            ComprasNetTenderMapper.to_nodes(empty_payload)
+            ItemResultadoConverter.to_nodes(empty_payload)
 
     @pytest.mark.parametrize("missing_field", [
-        "orgaoEntidadeCnpj",
-        "orgaoEntidadeRazaoSocial",
-        "unidadeOrgaoCodigoUnidade",
+        "idCompraItem",
         "idCompra",
-        "numeroCompra",
-        "anoCompraPncp",
-        "objetoCompra",
-        "valorTotalEstimado",
-        "dataPublicacaoPncp",
+        "niFornecedor",
+        "nomeRazaoSocialFornecedor",
+        "numeroItemPncp",
+        "quantidadeHomologada",
+        "valorUnitarioHomologado",
+        "valorTotalHomologado",
+        "situacaoCompraItemResultadoId"
     ])
     def test_to_nodes_missing_required_field_raises_value_error(
-        self, valid_tender_payload: dict, missing_field: str
+        self, valid_result_payload: dict, missing_field: str
     ):
-        valid_tender_payload["resultado"][0][missing_field] = None
+        valid_result_payload["resultado"][0][missing_field] = None
 
         with pytest.raises(ValueError, match=f"Missing required fields for fraud analysis mapping: {missing_field}"):
-            ComprasNetTenderMapper.to_nodes(valid_tender_payload)
+            ItemResultadoConverter.to_nodes(valid_result_payload)
