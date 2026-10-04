@@ -2,14 +2,14 @@ from typing import Optional, List, Dict, Any
 from src.models import TenderInput, ProposalInput
 from src.services.apis.comprasnet_tender_service import ComprasnetTenderService
 from src.services.apis.comprasnet_items_service import ComprasnetItemsService
-from src.services.apis.comprasnet_proposals_service import ComprasnetProposalsService
+from src.services.apis.comprasnet_winners_service import ComprasnetWinnersService
 
 
 class ComprasnetService:
     def __init__(self, timeout: float = 20.0):
         self.tender_service = ComprasnetTenderService(timeout=timeout)
         self.items_service = ComprasnetItemsService(timeout=timeout)
-        self.proposals_service = ComprasnetProposalsService(timeout=timeout)
+        self.proposals_service = ComprasnetWinnersService(timeout=timeout)
 
     def get_full_payload(self, id_compra: str) -> Optional[Dict[str, Any]]:
         try:
@@ -18,7 +18,7 @@ class ComprasnetService:
                 return None
 
             items = self.items_service.fetch_items(id_compra)
-            proposals = self.proposals_service.fetch_proposals(id_compra)
+            proposals = self.proposals_service.fetch_winners(id_compra)
 
             return {
                 "tender": tender,

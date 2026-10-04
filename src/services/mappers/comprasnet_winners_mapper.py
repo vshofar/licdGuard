@@ -1,8 +1,9 @@
 from typing import Dict, Any, List, Tuple
 from models.ingestor_schemas_v2 import CompanyNode, TenderItemNode
+from services.mappers.exceptions import RequiredValueNotFoundException, NoContentException
 
 
-class ItemResultadoMapper:
+class ComprasNetWinnersMapper:
 
     REQUIRED_FIELDS = [
         "idCompraItem",
@@ -23,22 +24,21 @@ class ItemResultadoMapper:
             if item.get(field) is None or str(item.get(field)).strip() == ""
         ]
         if missing_fields:
-            raise ValueError(
+            raise RequiredValueNotFoundException(
                 f"Missing required fields for fraud analysis mapping: {', '.join(missing_fields)}"
             )
 
     @classmethod
     def to_nodes(
-        cls, raw_response: Dict[str, Any]
+        cls, raw_response: List[Dict[str, Any]]
     ) -> Tuple[List[TenderItemNode], List[CompanyNode]]:
-        results = raw_response.get("resultado", [])
-        if not results:
-            raise ValueError("The returned payload contains no records in the 'resultado' key.")
+        if not raw_response:
+            raise NoContentException("The returned payload is empty.")
 
         items: List[TenderItemNode] = []
         unique_companies: Dict[str, CompanyNode] = {}
 
-        for raw_item in results:
+        for raw_item in raw_response:
             cls._validate_required_fields(raw_item)
 
             cnpj = "".join(filter(str.isdigit, str(raw_item["niFornecedor"])))

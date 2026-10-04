@@ -4,17 +4,17 @@ import pytest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.services.apis.comprasnet_proposals_service import ComprasnetProposalsService
+from src.services.apis.comprasnet_winners_service import ComprasnetWinnersService
 from src.services.apis.exceptions import ResourceNotFound, InternalError
 
 
 @pytest.fixture
-def proposals_service():
-    return ComprasnetProposalsService(timeout=5.0)
+def winners_service():
+    return ComprasnetWinnersService(timeout=5.0)
 
 
 @pytest.fixture
-def mock_proposals_payload():
+def mock_winners_payload():
     return {
         "resultado": [
             {
@@ -29,29 +29,29 @@ def mock_proposals_payload():
     }
 
 
-class TestComprasnetProposalsService:
-    def test_proposals_service_http_integration_success(self, httpx_mock, proposals_service, mock_proposals_payload):
+class TestComprasnetWinnersService:
+    def test_winners_service_http_integration_success(self, httpx_mock, winners_service, mock_winners_payload):
         id_compra = "123456789"
         base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
         httpx_mock.add_response(
             method="GET",
             url=f"{base_url}/3.1_consultarResultadoItensContratacoes_PNCP_14133_Id?tipo=idCompra&codigo={id_compra}",
-            json=mock_proposals_payload,
+            json=mock_winners_payload,
             status_code=200
         )
 
-        proposals = proposals_service.fetch_proposals(id_compra)
+        winners = winners_service.fetch_winners(id_compra)
 
-        assert proposals is not None
-        assert len(proposals) == 2
-        assert proposals[0]["niFornecedor"] == "33333333000133"
-        assert proposals[0]["valorTotalHomologado"] == 1400000.0
-        assert proposals[1]["niFornecedor"] == "44444444000144"
-        assert proposals[1]["valorUnitarioHomologado"] == 75000.0
+        assert winners is not None
+        assert len(winners) == 2
+        assert winners[0]["niFornecedor"] == "33333333000133"
+        assert winners[0]["valorTotalHomologado"] == 1400000.0
+        assert winners[1]["niFornecedor"] == "44444444000144"
+        assert winners[1]["valorUnitarioHomologado"] == 75000.0
 
 
-    def test_proposals_service_http_integration_empty_result(self, httpx_mock, proposals_service):
+    def test_winners_service_http_integration_empty_result(self, httpx_mock, winners_service):
         id_compra = "000000000"
         base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
@@ -62,12 +62,12 @@ class TestComprasnetProposalsService:
             status_code=200
         )
 
-        proposals = proposals_service.fetch_proposals(id_compra)
+        winners = winners_service.fetch_winners(id_compra)
 
-        assert proposals == []
+        assert winners == []
 
 
-    def test_proposals_service_http_integration_404_error(self, httpx_mock, proposals_service):
+    def test_winners_service_http_integration_404_error(self, httpx_mock, winners_service):
         id_compra = "000000000"
         base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
@@ -78,10 +78,10 @@ class TestComprasnetProposalsService:
         )
 
         with pytest.raises(ResourceNotFound):
-            proposals_service.fetch_proposals(id_compra)
+            winners_service.fetch_winners(id_compra)
 
 
-    def test_proposals_service_http_integration_500_error(self, httpx_mock, proposals_service):
+    def test_winners_service_http_integration_500_error(self, httpx_mock, winners_service):
         id_compra = "123456789"
         base_url = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
@@ -92,8 +92,5 @@ class TestComprasnetProposalsService:
         )
 
         with pytest.raises(InternalError):
-            proposals_service.fetch_proposals(id_compra)
+            winners_service.fetch_winners(id_compra)
 
-
-if __name__ == "__main__":
-    pytest.main(["-s", "-v", __file__])

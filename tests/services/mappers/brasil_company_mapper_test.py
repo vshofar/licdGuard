@@ -1,6 +1,7 @@
 import pytest
 from models.ingestor_schemas_v2 import CompanyNode, AddressNode, PartnerNode
-from services.mappers.brasilapi_company_mapper import ReceitaFederalCompanyConverter
+from services.mappers.brasilapi_company_mapper import BrasilCompanyMapper
+from services.mappers.exceptions import RequiredValueNotFoundException, NoContentException
 
 
 @pytest.fixture
@@ -26,10 +27,10 @@ def valid_brasilapi_payload() -> dict:
     }
 
 
-class TestReceitaFederalCompanyConverter:
+class TestBrasilCompanyMapper:
 
     def test_to_company_node_success(self, valid_brasilapi_payload: dict):
-        company = ReceitaFederalCompanyConverter.to_company_node(valid_brasilapi_payload)
+        company = BrasilCompanyMapper.to_company_node(valid_brasilapi_payload)
 
         assert isinstance(company, CompanyNode)
         assert company.cnpj == "14208934000128"
@@ -52,6 +53,10 @@ class TestReceitaFederalCompanyConverter:
         assert partner.partner_name == "JOAO DA SILVA"
         assert partner.qualification == "Sócio-Administrador"
 
+    def test_to_company_node_empty_payload_raises_no_content_exception(self):
+        with pytest.raises(NoContentException, match="The returned payload is empty."):
+            BrasilCompanyMapper.to_company_node(None)
+
     def test_to_company_node_empty_qsa_and_address_fallbacks(self, valid_brasilapi_payload: dict):
         valid_brasilapi_payload["qsa"] = []
         valid_brasilapi_payload["descricao_tipo_de_logradouro"] = None
@@ -59,7 +64,7 @@ class TestReceitaFederalCompanyConverter:
         valid_brasilapi_payload["numero"] = None
         valid_brasilapi_payload["cep"] = None
 
-        company = ReceitaFederalCompanyConverter.to_company_node(valid_brasilapi_payload)
+        company = BrasilCompanyMapper.to_company_node(valid_brasilapi_payload)
 
         assert len(company.partners) == 0
         assert company.address.street == "NAO_INFORMADO"
@@ -72,10 +77,10 @@ class TestReceitaFederalCompanyConverter:
         "capital_social",
         "data_inicio_atividade"
     ])
-    def test_to_company_node_missing_required_field_raises_value_error(
+    def test_to_company_node_missing_required_field_raises_required_value_not_found_exception(
         self, valid_brasilapi_payload: dict, missing_field: str
     ):
         valid_brasilapi_payload[missing_field] = None
 
-        with pytest.raises(ValueError, match=f"Missing required fields in BrasilAPI payload: {missing_field}"):
-            ReceitaFederalCompanyConverter.to_company_node(valid_brasilapi_payload)
+        with pytest.raises(RequiredValueNotFoundException, match=f"Missing required fields in BrasilAPI payload: {missing_field}"):
+            BrasilCompanyMapper.to_company_node(valid_brasilapi_payload)

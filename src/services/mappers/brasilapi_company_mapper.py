@@ -1,8 +1,9 @@
 from typing import Dict, Any, List
 from models.ingestor_schemas_v2 import CompanyNode, AddressNode, PartnerNode
+from services.mappers.exceptions import RequiredValueNotFoundException, NoContentException
 
 
-class ReceitaFederalCompanyConverter:
+class BrasilCompanyMapper:
 
     REQUIRED_FIELDS = [
         "cnpj",
@@ -18,7 +19,7 @@ class ReceitaFederalCompanyConverter:
             if payload.get(field) is None or str(payload.get(field)).strip() == ""
         ]
         if missing_fields:
-            raise ValueError(
+            raise RequiredValueNotFoundException(
                 f"Missing required fields in BrasilAPI payload: {', '.join(missing_fields)}"
             )
 
@@ -72,6 +73,9 @@ class ReceitaFederalCompanyConverter:
 
     @classmethod
     def to_company_node(cls, raw_response: Dict[str, Any]) -> CompanyNode:
+        if not raw_response:
+            raise NoContentException("The returned payload is empty.")
+
         cls._validate_required_fields(raw_response)
 
         cnpj = "".join(filter(str.isdigit, str(raw_response["cnpj"])))

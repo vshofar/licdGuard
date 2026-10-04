@@ -157,3 +157,25 @@ O projeto inclui testes automatizados que:
 - Executam o pipeline completo
 - Validam os resultados da auditoria
 - Testam integrações com APIs externas (BrasilAPI e PNCP) usando pytest-httpx para mocking de requisições HTTP
+
+### Testes de Integração - LicitGuardQueryService
+
+Os testes de integração do `LicitGuardQueryService` validam o comportamento do serviço em diferentes cenários de resposta das APIs externas:
+
+| Cenário de Teste | API Afetada | Mock HTTP Status | Mock Response Body | Resultado Esperado |
+|-----------------|-------------|------------------|-------------------|-------------------|
+| **test_build_payload_for_tender_success_all_apis** | Todas | Tender: 200, Winners: 200, BrasilAPI: 200 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `valid_winners_payload`, BrasilAPI: `valid_company_payload` | Payload completo com public_agency, tender, items e winners preenchidos |
+| **test_tender_service_404_error** | Tender Service | 404 | - | Levanta `ResourceNotFound` |
+| **test_tender_service_400_error** | Tender Service | 400 | - | Levanta `BadRequest` |
+| **test_tender_service_500_error** | Tender Service | 500 | - | Levanta `InternalError` |
+| **test_tender_service_200_null_result** | Tender Service | 200 | `{"resultado": []}` | Levanta `NoContentException: "The returned payload is empty"` |
+| **test_winners_service_404_error** | Winners Service | Tender: 200, Winners: 404 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: - | Levanta `ResourceNotFound` |
+| **test_winners_service_400_error** | Winners Service | Tender: 200, Winners: 400 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: - | Levanta `BadRequest` |
+| **test_winners_service_500_error** | Winners Service | Tender: 200, Winners: 500 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: - | Levanta `InternalError` |
+| **test_winners_service_200_empty_result** | Winners Service | Tender: 200, Winners: 200 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `{"resultado": []}` | Levanta `NoContentException: "The returned payload is empty"` |
+| **test_brasilapi_service_404_error** | BrasilAPI Service | Tender: 200, Winners: 200, BrasilAPI: 404 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `valid_winners_payload`, BrasilAPI: - | Levanta `ResourceNotFound` |
+| **test_brasilapi_service_500_error** | BrasilAPI Service | Tender: 200, Winners: 200, BrasilAPI: 500 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `valid_winners_payload`, BrasilAPI: - | Levanta `InternalError` |
+| **test_brasilapi_service_200_null_result** | BrasilAPI Service | Tender: 200, Winners: 200, BrasilAPI: 200 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `valid_winners_payload`, BrasilAPI: `None` | Levanta `NoContentException: "The returned payload is empty"` |
+| **test_tender_service_200_missing_required_field** | Tender Service | 200 | Payload sem campo `idCompra` | Levanta `RequiredValueNotFoundException: "Missing required fields"` |
+| **test_winners_service_200_missing_required_field** | Winners Service | Tender: 200, Winners: 200 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: Payload sem campo `nomeRazaoSocialFornecedor` | Levanta `RequiredValueNotFoundException: "Missing required fields"` |
+| **test_brasilapi_service_200_missing_required_field** | BrasilAPI Service | Tender: 200, Winners: 200, BrasilAPI: 200 | Tender: `{"resultado": [valid_tender_payload]}`, Winners: `valid_winners_payload`, BrasilAPI: Payload sem campo `cnpj` | Levanta `RequiredValueNotFoundException: "Missing required fields in BrasilAPI payload"` |

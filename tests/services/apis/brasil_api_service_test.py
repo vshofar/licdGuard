@@ -50,11 +50,12 @@ class TestBrasilAPIService:
         company = brasil_api_service.fetch_company(cnpj)
 
         assert company is not None
-        assert company.cnpj == cnpj
-        assert company.company_name == "EMPRESA INTEGRACAO LTDA"
-        assert company.address == "AV BRASIL, 500 - CENTRO, RIO DE JANEIRO/RJ"
-        assert len(company.partners) == 1
-        assert company.partners[0].name == "MARIA OLIVEIRA"
+        assert company["cnpj"] == cnpj
+        assert company["razao_social"] == "EMPRESA INTEGRACAO LTDA"
+        assert company["logradouro"] == "AV BRASIL"
+        assert company["numero"] == "500"
+        assert len(company["qsa"]) == 1
+        assert company["qsa"][0]["nome_socio"] == "MARIA OLIVEIRA"
 
 
     def test_brasil_api_service_http_integration_500_error(self, httpx_mock, brasil_api_service):

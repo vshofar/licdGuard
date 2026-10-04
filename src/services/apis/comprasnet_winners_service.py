@@ -8,7 +8,7 @@ from src.services.apis.exceptions.exceptions import (
 )
 
 
-class ComprasnetProposalsService:
+class ComprasnetWinnersService:
     BASE_URL = "https://dadosabertos.compras.gov.br/modulo-contratacoes"
 
     def __init__(self, timeout: float = 20.0):
@@ -20,15 +20,15 @@ class ComprasnetProposalsService:
 
     def _handle_response_status(self, status_code: int, resource_id: str):
         if status_code == 400:
-            raise BadRequest(f"Bad request for proposals {resource_id}")
+            raise BadRequest(f"Bad request for winners {resource_id}")
         elif status_code == 404:
-            raise ResourceNotFound(f"Proposals {resource_id} not found")
+            raise ResourceNotFound(f"Winners {resource_id} not found")
         elif status_code == 500:
-            raise InternalError(f"Internal server error fetching proposals {resource_id}")
+            raise InternalError(f"Internal server error fetching winners {resource_id}")
         elif status_code != 200:
-            raise UnknownRequestException(f"Unknown error fetching proposals {resource_id}. Status code: {status_code}")
+            raise UnknownRequestException(f"Unknown error fetching winners {resource_id}. Status code: {status_code}")
 
-    def fetch_proposals(self, id_compra: str) -> List[Dict[str, Any]]:
+    def fetch_winners(self, id_compra: str) -> List[Dict[str, Any]]:
         url = f"{self.BASE_URL}/3.1_consultarResultadoItensContratacoes_PNCP_14133_Id"
         params = {"tipo": "idCompra", "codigo": id_compra}
 
@@ -40,4 +40,4 @@ class ComprasnetProposalsService:
         except Exception as e:
             if isinstance(e, (BadRequest, ResourceNotFound, InternalError, UnknownRequestException)):
                 raise
-            raise Exception(f"Failed to fetch proposals {id_compra}: {e}") from e
+            raise Exception(f"Failed to fetch winners {id_compra}: {e}") from e
