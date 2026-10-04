@@ -23,17 +23,27 @@ licdGuard/
 │   ├── database/
 │   │   └── neo4j_client.py   # Cliente Neo4j
 │   ├── models/
-│   │   └── ingestor_schemas.py # Schemas Pydantic para validação
+│   │   ├── ingestor_schemas.py # Schemas Pydantic para validação
+│   │   └── ingestor_schemas_v2.py # Schemas Pydantic v2 para nodes do Knowledge Graph
 │   ├── prompts/
 │   │   └── report_templates.py # Prompts para LLM
 │   ├── services/
-│   │   ├── brasil_api_service.py # Integração com BrasilAPI (dados de CNPJ)
-│   │   └── pncp_api_service.py   # Integração com PNCP API (licitações)
+│   │   ├── apis/
+│   │   │   ├── brasil_api_service.py # Integração com BrasilAPI (dados de CNPJ)
+│   │   │   ├── comprasnet_tender_service.py # Integração com Comprasnet (licitações)
+│   │   │   ├── comprasnet_winners_service.py # Integração com Comprasnet (resultados)
+│   │   │   └── exceptions/ # Exceções específicas de APIs
+│   │   ├── mappers/
+│   │   │   ├── brasilapi_company_mapper.py # Mapper BrasilAPI -> CompanyNode
+│   │   │   ├── comprasnet_tender_mapper.py # Mapper Comprasnet -> TenderNode
+│   │   │   ├── comprasnet_winners_mapper.py # Mapper Comprasnet -> WinnerNode
+│   │   │   └── exceptions/ # Exceções específicas de mappers
+│   │   └── licidguard_query_service.py # Serviço principal de consulta
 │   └── main.py               # Pipeline principal
 ├── tests/
 │   ├── pipeline_test.py      # Testes end-to-end
 │   ├── agents/               # Testes unitários dos agentes
-│   └── services/             # Testes unitários dos serviços de API
+│   └── services/             # Testes unitários dos serviços de API e mappers
 └── requirements.txt
 ```
 
@@ -50,10 +60,36 @@ licdGuard/
 
 - **BrasilAPIService**: Integração com BrasilAPI para consulta de dados cadastrais de CNPJ
   - Busca razão social, endereço e quadro de sócios (QSA)
-  - Retorna dados estruturados via Pydantic schemas
-- **PNCPApiService**: Integração com PNCP API para consulta de licitações públicas
-  - Busca dados de licitações por órgão, ano e sequencial
-  - Recupera propostas de fornecedores associadas
+  - Retorna dados brutos da API para processamento pelo mapper
+- **ComprasnetTenderService**: Integração com Comprasnet para consulta de licitações públicas
+  - Busca dados de licitações por ID de compra
+  - Retorna dados brutos da API para processamento pelo mapper
+- **ComprasnetWinnersService**: Integração com Comprasnet para consulta de resultados de licitações
+  - Busca itens e fornecedores vencedores por ID de compra
+  - Retorna dados brutos da API para processamento pelo mapper
+
+### 🗺️ Mappers
+
+- **BrasilCompanyMapper**: Converte dados brutos da BrasilAPI em `CompanyNode`
+  - Valida campos obrigatórios (cnpj, razao_social, capital_social, data_inicio_atividade)
+  - Levanta `RequiredValueNotFoundException` se campos obrigatórios estiverem faltando
+  - Levanta `NoContentException` se o payload for nulo ou vazio
+- **ComprasNetTenderMapper**: Converte dados brutos do Comprasnet em `PublicAgencyNode` e `TenderNode`
+  - Valida campos obrigatórios (orgaoEntidadeCnpj, orgaoEntidadeRazaoSocial, etc.)
+  - Levanta `RequiredValueNotFoundException` se campos obrigatórios estiverem faltando
+  - Levanta `NoContentException` se o payload for nulo ou vazio
+- **ComprasNetWinnersMapper**: Converte dados brutos do Comprasnet em `TenderItemNode` e `CompanyNode`
+  - Valida campos obrigatórios (idCompraItem, niFornecedor, nomeRazaoSocialFornecedor, etc.)
+  - Levanta `RequiredValueNotFoundException` se campos obrigatórios estiverem faltando
+  - Levanta `NoContentException` se o payload for nulo ou vazio
+
+### 🔧 LicitGuardQueryService
+
+Serviço principal que orquestra as chamadas às APIs e mappers para construir o payload de ingestão:
+- Coleta dados de licitação via `ComprasnetTenderService`
+- Coleta dados de vencedores via `ComprasnetWinnersService`
+- Enriquece dados de empresas via `BrasilAPIService`
+- Aplica mappers para converter dados brutos em nodes do Knowledge Graph
 
 ---
 
