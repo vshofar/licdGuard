@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Tuple
 from models.ingestor_schemas_v2 import CompanyNode, TenderItemNode
 
 
-class ItemResultadoConverter:
+class ItemResultadoMapper:
 
     REQUIRED_FIELDS = [
         "idCompraItem",

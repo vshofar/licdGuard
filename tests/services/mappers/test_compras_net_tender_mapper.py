@@ -1,6 +1,6 @@
 import pytest
 from models.ingestor_schemas_v2 import CompanyNode, TenderItemNode
-from services.mappers.comprasnet_winners_mapper import ItemResultadoConverter
+from services.mappers.comprasnet_winners_mapper import ItemResultadoMapper
 
 
 @pytest.fixture
@@ -37,7 +37,7 @@ def valid_result_payload() -> dict:
 class TestItemResultadoConverter:
 
     def test_to_nodes_success(self, valid_result_payload: dict):
-        items, companies = ItemResultadoConverter.to_nodes(valid_result_payload)
+        items, companies = ItemResultadoMapper.to_nodes(valid_result_payload)
 
         assert len(items) == 2
         assert isinstance(items[0], TenderItemNode)
@@ -58,7 +58,7 @@ class TestItemResultadoConverter:
         empty_payload = {"resultado": [], "totalRegistros": 0}
 
         with pytest.raises(ValueError, match="The returned payload contains no records in the 'resultado' key."):
-            ItemResultadoConverter.to_nodes(empty_payload)
+            ItemResultadoMapper.to_nodes(empty_payload)
 
     @pytest.mark.parametrize("missing_field", [
         "idCompraItem",
@@ -77,4 +77,4 @@ class TestItemResultadoConverter:
         valid_result_payload["resultado"][0][missing_field] = None
 
         with pytest.raises(ValueError, match=f"Missing required fields for fraud analysis mapping: {missing_field}"):
-            ItemResultadoConverter.to_nodes(valid_result_payload)
+            ItemResultadoMapper.to_nodes(valid_result_payload)
