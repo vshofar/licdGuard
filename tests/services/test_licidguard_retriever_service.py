@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import Mock, MagicMock
 from models.ingestor_schemas_v2 import (
     IngestionPayload,
     PublicAgencyNode,
@@ -8,47 +8,70 @@ from models.ingestor_schemas_v2 import (
     CompanyNode,
 )
 from services.licidguard_retriever_service import LicidGuardRetrieverService
+from services.apis.comprasnet_tender_service import ComprasnetTenderService
+from services.apis.comprasnet_winners_service import ComprasnetWinnersService
+from services.apis.brasil_api_service import BrasilAPIService
 
 
 class TestLicidGuardRetrieverService:
 
     @pytest.fixture
-    def mock_query_service(self):
-        service = AsyncMock()
-        payload = IngestionPayload(
-            public_agency=PublicAgencyNode(
-                cnpj="00394452000103",
-                agency_name="MINISTERIO DA DEFESA",
-                uasg_code="160175",
-            ),
-            tender=TenderNode(
-                tender_id="16017505900062024",
-                notice_number="90003/2024",
-                object_description="Aquisicao de materiais",
-                estimated_value=500000.0,
-                publication_date="2024-01-10T08:00:00",
-            ),
-            items=[
-                TenderItemNode(
-                    item_id="1601750590006202400001",
-                    tender_id="16017505900062024",
-                    item_number=1,
-                    quantity_homologated=10.0,
-                    unit_value_homologated=100.0,
-                    total_value_homologated=1000.0,
-                    winner_cnpj="14208934000128",
-                )
-            ],
-            winners=[
-                CompanyNode(
-                    cnpj="14208934000128",
-                    legal_name="CONSTRUTORA KARBONE LTDA",
-                    share_capital=150000.0,
-                    creation_date="2011-08-15",
-                )
-            ],
-        )
-        service.build_payload_for_tender.return_value = payload
+    def mock_tender_service(self):
+        service = Mock(spec=ComprasnetTenderService)
+        service.fetch_tender.return_value = {
+            "idCompra": "16017505900062024",
+            "numeroCompra": "90003",
+            "anoCompraPncp": 2024,
+            "objetoCompra": "Aquisicao de materiais",
+            "valorTotalEstimado": 500000.0,
+            "dataPublicacaoPncp": "2024-01-10T08:00:00",
+            "orgaoEntidadeCnpj": "00394452000103",
+            "orgaoEntidadeRazaoSocial": "MINISTERIO DA DEFESA",
+            "unidadeOrgaoCodigoUnidade": "160175",
+            "unidadeOrgaoNomeUnidade": "UASG TESTE"
+        }
+        return service
+
+    @pytest.fixture
+    def mock_winners_service(self):
+        service = Mock(spec=ComprasnetWinnersService)
+        service.fetch_winners.return_value = [
+            {
+                "idCompraItem": "1601750590006202400001",
+                "idCompra": "16017505900062024",
+                "numeroItemPncp": 1,
+                "niFornecedor": "14208934000128",
+                "nomeRazaoSocialFornecedor": "CONSTRUTORA KARBONE LTDA",
+                "quantidadeHomologada": 10.0,
+                "valorUnitarioHomologado": 100.0,
+                "valorTotalHomologado": 1000.0,
+                "situacaoCompraItemResultadoId": 1
+            }
+        ]
+        return service
+
+    @pytest.fixture
+    def mock_brasilapi_service(self):
+        service = Mock(spec=BrasilAPIService)
+        service.fetch_company.return_value = {
+            "cnpj": "14208934000128",
+            "razao_social": "CONSTRUTORA KARBONE E COMERCIAL LTDA",
+            "capital_social": 150000.0,
+            "data_inicio_atividade": "2011-08-15",
+            "descricao_tipo_de_logradouro": "RUA",
+            "logradouro": "PEIXOTO GOMIDE",
+            "numero": "100",
+            "cep": "01409000",
+            "municipio": "SAO PAULO",
+            "uf": "SP",
+            "qsa": [
+                {
+                    "cpf_cnpj_socio": "***123456**",
+                    "nome_socio": "JOAO DA SILVA",
+                    "qualificacao_socio": "Sócio-Administrador"
+                }
+            ]
+        }
         return service
 
     @pytest.fixture
@@ -58,16 +81,20 @@ class TestLicidGuardRetrieverService:
 
     @pytest.mark.asyncio
     async def test_process_and_ingest_tender_success(
-            self, mock_query_service, mock_ingestion_service
+            self, mock_tender_service, mock_winners_service, mock_brasilapi_service, mock_ingestion_service
     ):
-        orchestrator = LicidGuardRetrieverService(
-            query_service=mock_query_service,
+        retriever = LicidGuardRetrieverService(
+            tender_service=mock_tender_service,
+            winners_service=mock_winners_service,
+            brasilapi_service=mock_brasilapi_service,
             ingestion_service=mock_ingestion_service,
         )
 
-        result = await orchestrator.process_and_ingest_tender("16017505900062024")
+        result = await retriever.process_and_ingest_tender("16017505900062024")
 
-        mock_query_service.build_payload_for_tender.assert_called_once_with("16017505900062024")
+        mock_tender_service.fetch_tender.assert_called_once_with("16017505900062024")
+        mock_winners_service.fetch_winners.assert_called_once_with("16017505900062024")
+        mock_brasilapi_service.fetch_company.assert_called_once()
         mock_ingestion_service.ingest_payload.assert_called_once()
         assert result["status"] == "success"
         assert result["tender_id"] == "16017505900062024"
@@ -75,18 +102,20 @@ class TestLicidGuardRetrieverService:
         assert result["winners_count"] == 1
 
     @pytest.mark.asyncio
-    async def test_process_and_ingest_tender_raises_exception_on_query_failure(
-            self, mock_query_service, mock_ingestion_service
+    async def test_process_and_ingest_tender_raises_exception_on_tender_failure(
+            self, mock_tender_service, mock_winners_service, mock_brasilapi_service, mock_ingestion_service
     ):
-        mock_query_service.build_payload_for_tender.side_effect = Exception("ComprasNet Unreachable")
+        mock_tender_service.fetch_tender.side_effect = Exception("ComprasNet Unreachable")
 
-        orchestrator = LicidGuardRetrieverService(
-            query_service=mock_query_service,
+        retriever = LicidGuardRetrieverService(
+            tender_service=mock_tender_service,
+            winners_service=mock_winners_service,
+            brasilapi_service=mock_brasilapi_service,
             ingestion_service=mock_ingestion_service,
         )
 
         with pytest.raises(Exception, match="ComprasNet Unreachable"):
-            await orchestrator.process_and_ingest_tender("16017505900062024")
+            await retriever.process_and_ingest_tender("16017505900062024")
 
         mock_ingestion_service.ingest_payload.assert_not_called()
 

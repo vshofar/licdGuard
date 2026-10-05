@@ -7,7 +7,7 @@ from models.ingestor_schemas_v2 import IngestionPayload
 logger = logging.getLogger(__name__)
 
 
-class LicitGuardGraphIngestionService:
+class LicitGuardGraphStorageService:
 
     INGESTION_CYPHER = """
     MERGE (agency:PublicAgency {cnpj: $agency.cnpj})

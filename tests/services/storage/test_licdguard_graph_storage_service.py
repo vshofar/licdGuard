@@ -9,10 +9,10 @@ from models.ingestor_schemas_v2 import (
     AddressNode,
     PartnerNode,
 )
-from services.ingestion.licdguard_graph_ingestion_service import LicitGuardGraphIngestionService
+from services.storage.licdguard_graph_storage_service import LicitGuardGraphStorageService
 
 
-class TestLicitGuardGraphIngestionService:
+class TestLicitGuardGraphStorageService:
 
     @pytest.fixture
     def mock_neo4j_client(self):
@@ -73,7 +73,7 @@ class TestLicitGuardGraphIngestionService:
     def test_ingest_payload_success(
         self, mock_neo4j_client: MagicMock, sample_ingestion_payload: IngestionPayload
     ):
-        service = LicitGuardGraphIngestionService(neo4j_client=mock_neo4j_client)
+        service = LicitGuardGraphStorageService(neo4j_client=mock_neo4j_client)
 
         service.ingest_payload(sample_ingestion_payload)
 
@@ -88,7 +88,7 @@ class TestLicitGuardGraphIngestionService:
     ):
         mock_neo4j_client.query.side_effect = Exception("Neo4j Connection Error")
 
-        service = LicitGuardGraphIngestionService(neo4j_client=mock_neo4j_client)
+        service = LicitGuardGraphStorageService(neo4j_client=mock_neo4j_client)
 
         with pytest.raises(Exception, match="Neo4j Connection Error"):
             service.ingest_payload(sample_ingestion_payload)

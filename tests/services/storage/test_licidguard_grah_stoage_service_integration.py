@@ -11,7 +11,7 @@ from models.ingestor_schemas_v2 import (
     AddressNode,
     PartnerNode,
 )
-from services.ingestion.licdguard_graph_ingestion_service import LicitGuardGraphIngestionService
+from services.storage.licdguard_graph_storage_service import LicitGuardGraphStorageService
 
 
 @pytest.fixture(scope="module")
@@ -32,7 +32,7 @@ def neo4j_client(neo4j_container):
     client.close()
 
 
-class TestLicitGuardGraphIngestionServiceIntegration:
+class TestLicitGuardGraphStorageServiceIntegration:
 
     @pytest.fixture(autouse=True)
     def setup_and_teardown_db(self, neo4j_client: Neo4jClient):
@@ -93,7 +93,7 @@ class TestLicitGuardGraphIngestionServiceIntegration:
     def test_full_graph_ingestion_and_persistence(
         self, neo4j_client: Neo4jClient, sample_payload: IngestionPayload
     ):
-        service = LicitGuardGraphIngestionService(neo4j_client=neo4j_client)
+        service = LicitGuardGraphStorageService(neo4j_client=neo4j_client)
         service.ingest_payload(sample_payload)
 
         agency_res = neo4j_client.query(
@@ -137,7 +137,7 @@ class TestLicitGuardGraphIngestionServiceIntegration:
     def test_idempotency_on_multiple_ingestions(
         self, neo4j_client: Neo4jClient, sample_payload: IngestionPayload
     ):
-        service = LicitGuardGraphIngestionService(neo4j_client=neo4j_client)
+        service = LicitGuardGraphStorageService(neo4j_client=neo4j_client)
 
         service.ingest_payload(sample_payload)
         service.ingest_payload(sample_payload)

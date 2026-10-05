@@ -6,8 +6,7 @@ from database.neo4j_client import Neo4jClient
 from services.apis.comprasnet_tender_service import ComprasnetTenderService
 from services.apis.comprasnet_winners_service import ComprasnetWinnersService
 from services.apis.brasil_api_service import BrasilAPIService
-from services.ingestion.licdguard_graph_ingestion_service import LicitGuardGraphIngestionService
-from services.licidguard_query_service import LicitGuardQueryService
+from services.storage.licdguard_graph_storage_service import LicitGuardGraphStorageService
 from services.licidguard_retriever_service import LicidGuardRetrieverService
 
 
@@ -123,16 +122,13 @@ class TestLicidGuardRetrieverServiceIntegration:
         brasilapi_service = BrasilAPIService()
 
         # Instanciação das camadas principais
-        query_service = LicitGuardQueryService(
-            tender_service=tender_service,
-            winners_service=winners_service,
-            brasilapi_service=brasilapi_service,
-        )
-        ingestion_service = LicitGuardGraphIngestionService(
+        ingestion_service = LicitGuardGraphStorageService(
             neo4j_client=neo4j_client
         )
         retriever_service = LicidGuardRetrieverService(
-            query_service=query_service,
+            tender_service=tender_service,
+            winners_service=winners_service,
+            brasilapi_service=brasilapi_service,
             ingestion_service=ingestion_service,
         )
 
