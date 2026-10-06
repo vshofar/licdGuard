@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Any, List
 
 from models.ingestor_schemas_v2 import IngestionPayload, CompanyNode
@@ -10,7 +9,6 @@ from services.apis.comprasnet_tender_service import ComprasnetTenderService
 from services.apis.comprasnet_winners_service import ComprasnetWinnersService
 from services.apis.brasil_api_service import BrasilAPIService
 
-logger = logging.getLogger(__name__)
 
 
 class LicidGuardRetrieverService:
@@ -68,15 +66,15 @@ class LicidGuardRetrieverService:
         )
 
     async def process_and_ingest_tender(self, id_compra: str) -> Dict[str, Any]:
-        logger.info(f"Starting ingestion process for tender ID: {id_compra}")
+        print(f"Starting ingestion process for tender ID: {id_compra}")
 
         payload = self._build_payload_for_tender(id_compra)
-        logger.info(
+        print(
             f"Payload built for tender {id_compra}. Total items: {len(payload.items)}, Winners: {len(payload.winners)}"
         )
 
         self.ingestion_service.ingest_payload(payload)
-        logger.info(f"Successfully processed and ingested tender ID: {id_compra}")
+        print(f"Successfully processed and ingested tender ID: {id_compra}")
 
         return {
             "status": "success",

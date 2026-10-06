@@ -1,10 +1,8 @@
-import logging
 from typing import Dict, Any
 
 from database import Neo4jClient
 from models.ingestor_schemas_v2 import IngestionPayload
 
-logger = logging.getLogger(__name__)
 
 
 class LicitGuardGraphStorageService:
@@ -101,11 +99,11 @@ class LicitGuardGraphStorageService:
         params = self._prepare_params(payload)
         try:
             self.client.query(self.INGESTION_CYPHER, params)
-            logger.info(
+            print(
                 f"Successfully ingested tender {payload.tender.tender_id} into Neo4j."
             )
         except Exception as e:
-            logger.error(
+            print(
                 f"Failed to ingest tender {payload.tender.tender_id} into Neo4j: {str(e)}"
             )
             raise e
