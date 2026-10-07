@@ -42,7 +42,7 @@ def ensure_neo4j_container():
 
 async def main():
 
-    tender_id = "15301505000012024"
+    tender_id = "78320105000022024"
 
     ensure_neo4j_container()
 
